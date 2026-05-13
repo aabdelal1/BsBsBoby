@@ -1,0 +1,106 @@
+pet_id,owner_id,species,breed_id,name,birth_year,vaccination_history,weight_kg,color,personality
+PET_ad66760b,USR_23963b13,Cat,CAT_050,Zoe,2014,Unvaccinated,25.2,Tuxedo,Aggressive
+PET_23803c4e,USR_c86311b7,Dog,DOG_082,Milo,2014,Unvaccinated,6.5,Brown,Anxious
+PET_027e2cf3,USR_c86311b7,Cat,CAT_024,Rocky,2018,Partially Vaccinated,36.0,Calico,Independent
+PET_032148bb,USR_70be3439,Dog,DOG_004,Daisy,2015,Fully Vaccinated,23.4,Spotted,Friendly
+PET_621307cd,USR_70be3439,Cat,CAT_005,Milo,2017,Unvaccinated,17.7,Spotted,Friendly
+PET_f845617e,USR_70be3439,Cat,CAT_007,Lucy,2021,Unvaccinated,27.2,Grey,Independent
+PET_44761325,USR_1a414de8,Dog,DOG_063,Zoe,2013,Unvaccinated,10.6,White,Calm
+PET_c7aa8bde,USR_f42820c1,Cat,CAT_034,Milo,2016,Fully Vaccinated,33.7,Tuxedo,Friendly
+PET_a58560a1,USR_55556e8e,Cat,CAT_016,Milo,2016,Unvaccinated,34.4,Golden,Anxious
+PET_91480b2d,USR_55556e8e,Cat,CAT_056,Max,2019,Fully Vaccinated,39.1,Golden,Shy
+PET_1119bf1d,USR_55556e8e,Dog,DOG_045,Milo,2016,Fully Vaccinated,21.6,Tuxedo,Shy
+PET_95f465f6,USR_d5c2e552,Cat,CAT_036,Charlie,2017,Partially Vaccinated,34.6,Black,Friendly
+PET_1e5890b0,USR_d5c2e552,Cat,CAT_042,Charlie,2024,Fully Vaccinated,22.0,White,Playful
+PET_c148032f,USR_d5c2e552,Dog,DOG_074,Milo,2012,Fully Vaccinated,38.2,Tuxedo,Calm
+PET_6203946a,USR_ea9faa58,Dog,DOG_064,Max,2011,Partially Vaccinated,38.2,White,Friendly
+PET_9066bd58,USR_ea9faa58,Cat,CAT_034,Daisy,2024,Unvaccinated,6.5,Grey,Friendly
+PET_e671f26b,USR_d6b2745e,Cat,CAT_051,Milo,2022,Partially Vaccinated,2.6,Grey,Calm
+PET_a943dfbe,USR_d6b2745e,Dog,DOG_026,Luna,2015,Partially Vaccinated,9.5,Spotted,Friendly
+PET_eedbc9c3,USR_d6b2745e,Cat,CAT_002,Lucy,2020,Unvaccinated,14.4,Brown,Anxious
+PET_96aeb058,USR_d2abfada,Cat,CAT_060,Zoe,2018,Partially Vaccinated,21.5,Grey,Playful
+PET_693a008a,USR_d2abfada,Cat,CAT_047,Luna,2012,Partially Vaccinated,37.2,Calico,Independent
+PET_45e146f2,USR_166ba117,Cat,CAT_014,Max,2018,Unvaccinated,3.3,Brown,Aggressive
+PET_67f04b8b,USR_166ba117,Dog,DOG_002,Charlie,2010,Unvaccinated,18.0,Tuxedo,Calm
+PET_a29b3a62,USR_0ec0460b,Dog,DOG_038,Zoe,2018,Fully Vaccinated,37.4,Golden,Playful
+PET_ecc31497,USR_0ec0460b,Cat,CAT_050,Luna,2018,Partially Vaccinated,28.7,Golden,Playful
+PET_e37c2a5e,USR_0ec0460b,Cat,CAT_051,Luna,2017,Unvaccinated,39.4,Golden,Anxious
+PET_13b9bb1b,USR_d68f074b,Dog,DOG_077,Lucy,2023,Unvaccinated,31.7,Spotted,Calm
+PET_0224cb69,USR_d68f074b,Dog,DOG_021,Charlie,2024,Fully Vaccinated,5.8,Calico,Friendly
+PET_f840d83d,USR_d68f074b,Dog,DOG_097,Bella,2022,Partially Vaccinated,25.1,Calico,Calm
+PET_11297a68,USR_96552a88,Dog,DOG_033,Milo,2015,Fully Vaccinated,23.8,Black,Aggressive
+PET_3faf5e63,USR_96552a88,Cat,CAT_043,Cooper,2011,Unvaccinated,16.3,Grey,Independent
+PET_b98aa94e,USR_96552a88,Dog,DOG_064,Lucy,2018,Partially Vaccinated,29.2,Black,Aggressive
+PET_237fb295,USR_a7ae89a4,Dog,DOG_009,Max,2023,Fully Vaccinated,10.0,Calico,Aggressive
+PET_64a71a21,USR_a7ae89a4,Dog,DOG_085,Daisy,2012,Partially Vaccinated,2.2,Golden,Independent
+PET_9622d2e0,USR_a7ae89a4,Cat,CAT_008,Luna,2018,Fully Vaccinated,5.1,Calico,Shy
+PET_71d4abd9,USR_f51b97fa,Cat,CAT_021,Lucy,2012,Partially Vaccinated,27.8,Calico,Anxious
+PET_758bebbf,USR_0d352ee6,Dog,DOG_097,Luna,2022,Unvaccinated,26.4,Golden,Independent
+PET_2ed4386b,USR_0d352ee6,Cat,CAT_017,Lucy,2020,Unvaccinated,36.7,Tuxedo,Calm
+PET_56e7c414,USR_0d352ee6,Dog,DOG_016,Rocky,2020,Fully Vaccinated,32.1,Grey,Independent
+PET_ec791b3e,USR_15444ca9,Cat,CAT_009,Rocky,2020,Fully Vaccinated,15.8,Tuxedo,Shy
+PET_8354361a,USR_15444ca9,Cat,CAT_051,Max,2017,Fully Vaccinated,15.0,Tuxedo,Anxious
+PET_76c4b97c,USR_15444ca9,Dog,DOG_005,Luna,2013,Unvaccinated,22.5,Calico,Friendly
+PET_4d005fdb,USR_e66d987e,Cat,CAT_041,Charlie,2022,Partially Vaccinated,34.1,Grey,Independent
+PET_5e0e9518,USR_e66d987e,Dog,DOG_032,Luna,2019,Unvaccinated,38.8,Brown,Friendly
+PET_dedcc7ae,USR_84e347af,Cat,CAT_033,Bella,2016,Unvaccinated,13.5,Calico,Independent
+PET_4539f212,USR_84e347af,Cat,CAT_049,Zoe,2017,Unvaccinated,3.7,Golden,Independent
+PET_8b9bb54f,USR_a6515f13,Dog,DOG_024,Lucy,2010,Unvaccinated,7.6,Tuxedo,Independent
+PET_d8836cbd,USR_a6515f13,Cat,CAT_005,Cooper,2013,Fully Vaccinated,6.1,Grey,Calm
+PET_e76bb833,USR_a6515f13,Cat,CAT_025,Zoe,2022,Partially Vaccinated,25.1,Black,Aggressive
+PET_d3ce3d06,USR_4fd9c95c,Dog,DOG_042,Rocky,2023,Fully Vaccinated,6.2,Brown,Calm
+PET_b1afb2eb,USR_70207ec1,Dog,DOG_083,Zoe,2016,Unvaccinated,3.3,Grey,Anxious
+PET_6ae9c1aa,USR_b9acce80,Cat,CAT_032,Rocky,2013,Unvaccinated,24.4,Brown,Calm
+PET_ad031766,USR_b9acce80,Dog,DOG_029,Cooper,2014,Unvaccinated,18.8,Spotted,Aggressive
+PET_6caf567d,USR_b9acce80,Cat,CAT_016,Luna,2023,Fully Vaccinated,14.1,Calico,Aggressive
+PET_3d5ed5ae,USR_0fb30cd3,Dog,DOG_066,Rocky,2021,Partially Vaccinated,24.5,Tuxedo,Shy
+PET_9195537a,USR_0fb30cd3,Dog,DOG_008,Daisy,2013,Unvaccinated,39.9,Grey,Playful
+PET_5b07c8ff,USR_61d86353,Dog,DOG_002,Zoe,2024,Unvaccinated,5.5,Golden,Friendly
+PET_0f456729,USR_61d86353,Dog,DOG_083,Milo,2014,Unvaccinated,23.6,Calico,Anxious
+PET_bcb0bbaa,USR_82dd80e5,Dog,DOG_059,Luna,2016,Unvaccinated,39.5,White,Playful
+PET_bff6b699,USR_82dd80e5,Dog,DOG_093,Luna,2017,Fully Vaccinated,29.1,Spotted,Aggressive
+PET_0ccb35ae,USR_82dd80e5,Dog,DOG_048,Charlie,2020,Unvaccinated,38.9,Golden,Calm
+PET_7c822fb5,USR_a861961b,Dog,DOG_019,Bella,2016,Partially Vaccinated,29.0,Brown,Playful
+PET_c972bf16,USR_0192f006,Dog,DOG_078,Cooper,2023,Fully Vaccinated,7.3,Golden,Playful
+PET_8fa0d809,USR_0192f006,Cat,CAT_053,Daisy,2024,Unvaccinated,28.3,Spotted,Friendly
+PET_b4e0a6f0,USR_0192f006,Cat,CAT_001,Rocky,2022,Partially Vaccinated,22.5,Black,Aggressive
+PET_a2053291,USR_6773a59c,Cat,CAT_035,Charlie,2019,Fully Vaccinated,30.8,Tuxedo,Friendly
+PET_71906890,USR_6773a59c,Dog,DOG_090,Daisy,2017,Fully Vaccinated,13.1,Grey,Friendly
+PET_9c9ec1b4,USR_0184a974,Dog,DOG_039,Cooper,2022,Unvaccinated,9.0,Tuxedo,Anxious
+PET_eccc6cfe,USR_b360ef2d,Dog,DOG_026,Charlie,2010,Unvaccinated,8.3,Brown,Calm
+PET_5cea01df,USR_f905a853,Dog,DOG_054,Daisy,2020,Partially Vaccinated,37.6,Brown,Playful
+PET_28128bc4,USR_f905a853,Cat,CAT_035,Rocky,2024,Partially Vaccinated,30.4,Grey,Friendly
+PET_0525a486,USR_d8e61989,Dog,DOG_018,Luna,2014,Unvaccinated,20.6,Grey,Shy
+PET_ce2b780d,USR_d8e61989,Cat,CAT_042,Milo,2015,Partially Vaccinated,19.4,Tuxedo,Friendly
+PET_43e9086b,USR_17ff1fb9,Dog,DOG_057,Lucy,2018,Unvaccinated,36.1,Golden,Calm
+PET_22b0a36c,USR_17ff1fb9,Dog,DOG_072,Rocky,2010,Fully Vaccinated,23.5,Brown,Playful
+PET_9f4aeab7,USR_31c9f3c4,Dog,DOG_082,Max,2011,Unvaccinated,29.4,Brown,Friendly
+PET_372228f7,USR_31c9f3c4,Dog,DOG_013,Charlie,2024,Unvaccinated,9.8,Brown,Playful
+PET_b6777506,USR_ac2234d8,Cat,CAT_025,Daisy,2015,Partially Vaccinated,26.3,Calico,Anxious
+PET_8a38b4f4,USR_ac2234d8,Dog,DOG_054,Luna,2015,Partially Vaccinated,3.1,White,Anxious
+PET_2ab760fa,USR_90e42a88,Dog,DOG_062,Zoe,2015,Partially Vaccinated,24.8,Calico,Friendly
+PET_3019cbc1,USR_6f2639a1,Cat,CAT_011,Rocky,2014,Partially Vaccinated,11.8,Brown,Anxious
+PET_811d9131,USR_6f2639a1,Dog,DOG_012,Zoe,2022,Partially Vaccinated,36.3,Grey,Playful
+PET_c50cddcf,USR_6801101b,Dog,DOG_057,Bella,2018,Fully Vaccinated,35.3,Golden,Independent
+PET_8d2786d0,USR_c9e58fcd,Dog,DOG_078,Zoe,2011,Fully Vaccinated,8.1,Golden,Anxious
+PET_a5955f62,USR_c9e58fcd,Dog,DOG_022,Cooper,2021,Unvaccinated,33.6,White,Aggressive
+PET_5a558e56,USR_c66c80ee,Cat,CAT_002,Daisy,2010,Unvaccinated,33.8,Black,Shy
+PET_fd47f8f1,USR_c66c80ee,Dog,DOG_037,Rocky,2018,Unvaccinated,20.5,Grey,Shy
+PET_ea516a48,USR_3e60be4d,Dog,DOG_049,Daisy,2020,Partially Vaccinated,6.9,Tuxedo,Calm
+PET_379ccbaf,USR_a6287843,Dog,DOG_088,Lucy,2024,Fully Vaccinated,33.4,Golden,Aggressive
+PET_816ec203,USR_a6287843,Dog,DOG_018,Zoe,2013,Fully Vaccinated,26.4,White,Shy
+PET_51d565d5,USR_a6287843,Dog,DOG_075,Luna,2011,Partially Vaccinated,19.3,Black,Shy
+PET_08faf1c9,USR_24fa0b98,Dog,DOG_052,Milo,2018,Unvaccinated,36.8,Black,Aggressive
+PET_3007b010,USR_24fa0b98,Dog,DOG_012,Zoe,2018,Partially Vaccinated,25.9,Black,Calm
+PET_17316f88,USR_0e253d9b,Dog,DOG_020,Luna,2011,Partially Vaccinated,15.0,Golden,Friendly
+PET_0e9e1ce5,USR_0e253d9b,Dog,DOG_001,Cooper,2010,Fully Vaccinated,15.1,Calico,Friendly
+PET_0d535da8,USR_cd5d4a89,Dog,DOG_006,Zoe,2011,Fully Vaccinated,33.5,Grey,Friendly
+PET_dcc6a679,USR_cd5d4a89,Dog,DOG_068,Max,2019,Partially Vaccinated,38.3,Tuxedo,Aggressive
+PET_78fa3df7,USR_cd5d4a89,Cat,CAT_009,Charlie,2013,Fully Vaccinated,34.1,Brown,Shy
+PET_2bfb6227,USR_ce90d88f,Dog,DOG_057,Milo,2018,Partially Vaccinated,17.7,White,Friendly
+PET_246936f2,USR_ce90d88f,Dog,DOG_043,Daisy,2011,Fully Vaccinated,34.1,Brown,Independent
+PET_e41cf01c,USR_e553a7ec,Cat,CAT_012,Rocky,2017,Fully Vaccinated,13.6,Grey,Shy
+PET_9c581805,USR_e553a7ec,Dog,DOG_013,Luna,2017,Fully Vaccinated,16.6,Black,Aggressive
+PET_e2495169,USR_e553a7ec,Dog,DOG_072,Luna,2016,Unvaccinated,34.8,Tuxedo,Independent
+PET_8cfba834,USR_93de0019,Cat,CAT_061,Daisy,2016,Fully Vaccinated,15.9,Tuxedo,Anxious
+PET_8c7f90b8,USR_93de0019,Cat,CAT_050,Bella,2022,Unvaccinated,37.2,Spotted,Friendly
