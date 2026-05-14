@@ -662,11 +662,12 @@
       <!-- SCREEN: ACCOUNT NOT CREATED -->
       <div class="screen" id="screen-notcreated">
         <div class="status-header">
-          <div class="pet-user-icon" onclick="showScreen('screen-userprofile')">
-            <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+          <div class="pet-user-icon" onclick="showScreen('screen-petprofile')">
+            <svg class="nav-pet-avatar-svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
               <circle cx="13" cy="9" r="6" fill="white" />
               <ellipse cx="13" cy="24" rx="10" ry="7" fill="white" />
             </svg>
+            <img class="nav-pet-avatar-img" style="display:none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
           </div>
         </div>
         <div class="status-body">
@@ -691,12 +692,13 @@
       <!-- SCREEN 3: PET PROFILE -->
       <div class="screen" id="screen-petprofile">
         <div class="pet-header">
-          <button class="back-btn" onclick="showScreen('screen-login')">&#8592;</button>
+          <button class="back-btn" id="pet-back-btn" onclick="showScreen('screen-login')">&#8592;</button>
           <div class="pet-user-icon" onclick="showScreen('screen-userprofile')">
-            <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+            <svg class="nav-user-avatar-svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
               <circle cx="13" cy="9" r="6" fill="white" />
               <ellipse cx="13" cy="24" rx="10" ry="7" fill="white" />
             </svg>
+            <img class="nav-user-avatar-img" style="display:none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
           </div>
         </div>
         <div class="pet-body">
@@ -813,6 +815,7 @@
           <input class="input-field" id="user-profile-phone" type="tel" placeholder="phone number" />
           <textarea class="textarea-field" id="user-profile-location" placeholder="location"></textarea>
           <button class="btn" style="margin-top:8px;" onclick="saveUserProfile()">save changes</button>
+          <button class="btn btn-outline" style="margin-top:8px; border-color: #e83030; color: #e83030;" onclick="logout()">log out</button>
         </div>
         <div class="bottom-nav">
           <div class="nav-icon" onclick="showScreen('screen-explore')">
@@ -839,10 +842,11 @@
         <div class="pet-header">
           <button class="back-btn" onclick="showScreen('screen-intro')">&#8592;</button>
           <div class="pet-user-icon" onclick="showScreen('screen-petprofile')">
-            <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+            <svg class="nav-pet-avatar-svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
               <circle cx="13" cy="9" r="6" fill="white" />
               <ellipse cx="13" cy="24" rx="10" ry="7" fill="white" />
             </svg>
+            <img class="nav-pet-avatar-img" style="display:none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
           </div>
         </div>
         <div class="profile-body" style="justify-content: center; text-align: center;">
@@ -874,6 +878,22 @@
   </div>
 
   <script>
+    function logout() {
+      currentUser = null;
+      currentPet = null;
+      userImageFile = null;
+      petImageFile = null;
+      document.getElementById('login-username').value = '';
+      document.getElementById('login-password').value = '';
+      document.getElementById('signup-username').value = '';
+      document.getElementById('signup-email').value = '';
+      document.getElementById('signup-phone').value = '';
+      document.getElementById('signup-location').value = '';
+      document.getElementById('signup-password').value = '';
+      document.getElementById('signup-verify-password').value = '';
+      showScreen('screen-intro');
+    }
+
     let currentUser = null;
     let currentPet = null;
     let userImageFile = null;
@@ -992,7 +1012,8 @@
         if (data.success) {
           currentUser = { username, email, phone, location };
           populateProfileData();
-          showScreen('screen-created');
+          document.getElementById('pet-back-btn').style.visibility = 'hidden';
+          showScreen('screen-petprofile');
         } else {
           alert(data.error || "Sign up failed");
         }
@@ -1022,6 +1043,7 @@
           currentUser = data.user;
           currentPet = data.pet;
           populateProfileData();
+          document.getElementById('pet-back-btn').style.visibility = 'visible';
           showScreen('screen-explore');
         } else {
           alert(data.error || "Login failed");
@@ -1112,8 +1134,21 @@
         const data = await response.json();
         
         if (data.success) {
+          const isNewPet = !currentPet;
           currentPet = petData;
-          showScreen('screen-userprofile');
+          document.getElementById('pet-back-btn').style.visibility = 'visible';
+          populateProfileData();
+          
+          if (isNewPet) {
+            const isAnomaly = Math.random() > 0.5; // placeholder anomaly detection
+            if (isAnomaly) {
+              showScreen('screen-notcreated');
+            } else {
+              showScreen('screen-created');
+            }
+          } else {
+            showScreen('screen-userprofile');
+          }
         } else {
           alert(data.error || "Failed to save pet profile");
         }
@@ -1172,9 +1207,22 @@
         const preview = document.getElementById('user-avatar-preview');
         preview.src = currentUser.photoPath;
         preview.style.display = 'block';
+        
+        document.querySelectorAll('.nav-user-avatar-svg').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.nav-user-avatar-img').forEach(el => {
+          el.src = currentUser.photoPath;
+          el.style.display = 'block';
+        });
       }
 
       if (currentPet) {
+        if (currentPet.photoPath) {
+          document.querySelectorAll('.nav-pet-avatar-svg').forEach(el => el.style.display = 'none');
+          document.querySelectorAll('.nav-pet-avatar-img').forEach(el => {
+            el.src = currentPet.photoPath;
+            el.style.display = 'block';
+          });
+        }
         document.getElementById('pet-name').value = currentPet.petName || '';
         document.getElementById('pet-birth').value = currentPet.birthYear || '';
         document.getElementById('pet-vaccination').value = currentPet.vaccination || '';
