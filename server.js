@@ -18,6 +18,12 @@ const DB_DIR = path.join(__dirname, 'DB');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 const USERS_CSV = path.join(DB_DIR, 'users.csv');
 const PETS_CSV = path.join(DB_DIR, 'individual_pets.csv');
+const SUSPICIOUS_CSV = path.join(DB_DIR, 'suspicious_profiles.csv');
+const INTERACTIONS_CSV = path.join(DB_DIR, 'interactions.csv');
+const MESSAGES_CSV = path.join(DB_DIR, 'messages.csv');
+const CHAT_CSV = path.join(DB_DIR, 'chat.csv');
+
+const mlPipeline = require('./ml_pipeline');
 
 // Ensure directories exist
 if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR);
@@ -46,7 +52,28 @@ const petHeaders = [
     { id: 'weight', title: 'weight' },
     { id: 'color', title: 'color' },
     { id: 'personality', title: 'personality' },
-    { id: 'photoPath', title: 'photoPath' }
+    { id: 'photoPath', title: 'photoPath' },
+    { id: 'isFlagged', title: 'isFlagged' },
+    { id: 'clusterGroup', title: 'clusterGroup' }
+];
+
+const suspiciousHeaders = [...petHeaders, { id: 'reason', title: 'reason' }];
+const interactionHeaders = [
+    { id: 'username', title: 'username' },
+    { id: 'targetUsername', title: 'targetUsername' },
+    { id: 'action', title: 'action' }, // like, skip, swipe
+    { id: 'timestamp', title: 'timestamp' }
+];
+const messageHeaders = [
+    { id: 'fromUser', title: 'fromUser' },
+    { id: 'toUser', title: 'toUser' },
+    { id: 'status', title: 'status' } // pending, accepted
+];
+const chatHeaders = [
+    { id: 'fromUser', title: 'fromUser' },
+    { id: 'toUser', title: 'toUser' },
+    { id: 'message', title: 'message' },
+    { id: 'timestamp', title: 'timestamp' }
 ];
 
 if (!fs.existsSync(USERS_CSV)) {
@@ -58,6 +85,35 @@ if (!fs.existsSync(PETS_CSV)) {
     const csvWriter = createCsvWriter({ path: PETS_CSV, header: petHeaders });
     csvWriter.writeRecords([]);
 }
+
+if (!fs.existsSync(SUSPICIOUS_CSV)) {
+    const csvWriter = createCsvWriter({ path: SUSPICIOUS_CSV, header: suspiciousHeaders });
+    csvWriter.writeRecords([]);
+}
+
+if (!fs.existsSync(INTERACTIONS_CSV)) {
+    const csvWriter = createCsvWriter({ path: INTERACTIONS_CSV, header: interactionHeaders });
+    csvWriter.writeRecords([]);
+}
+
+if (!fs.existsSync(MESSAGES_CSV)) {
+    const csvWriter = createCsvWriter({ path: MESSAGES_CSV, header: messageHeaders });
+    csvWriter.writeRecords([]);
+}
+
+if (!fs.existsSync(CHAT_CSV)) {
+    const csvWriter = createCsvWriter({ path: CHAT_CSV, header: chatHeaders });
+    csvWriter.writeRecords([]);
+}
+
+// Background Task: Periodic Apriori Scanning
+let globalAprioriRules = [];
+setInterval(async () => {
+    try {
+        globalAprioriRules = await mlPipeline.runApriori();
+        console.log("Global Apriori rules updated in background");
+    } catch (err) { }
+}, 60000); // Runs every 60 seconds for demo purposes
 
 // Multer setup for uploads
 const storage = multer.diskStorage({
@@ -216,7 +272,7 @@ app.post('/api/pet', async (req, res) => {
         let pets = await readCsv(PETS_CSV);
         let petIndex = pets.findIndex(p => p.username === username);
 
-        const newPetData = {
+        const newPetData = mlPipeline.preprocess({
             username,
             petName: petName || '',
             type: type || '',
@@ -229,7 +285,12 @@ app.post('/api/pet', async (req, res) => {
             color: color || '',
             personality: personality || '',
             photoPath: photoPath || ''
-        };
+        });
+
+        // Gatekeeper Anomaly Detection
+        const isAnomaly = mlPipeline.gatekeeper(req.body);
+        newPetData.isFlagged = isAnomaly ? 'true' : 'false';
+        newPetData.clusterGroup = '';
 
         if (petIndex > -1) {
             // Update
@@ -239,7 +300,27 @@ app.post('/api/pet', async (req, res) => {
             pets.push(newPetData);
         }
 
+        // Run Clustering to assign group immediately if not flagged
+        if (!isAnomaly) {
+            const dataToCluster = mlPipeline.extractFeatures(pets.filter(p => p.isFlagged !== 'true'));
+            if (dataToCluster.length >= 3) {
+                 const kmeansRes = require('ml-kmeans').kmeans(dataToCluster, 3);
+                 let validIndex = 0;
+                 pets.forEach(p => {
+                     if (p.isFlagged !== 'true') {
+                         p.clusterGroup = kmeansRes.clusters[validIndex++];
+                     }
+                 });
+                 if (petIndex > -1) newPetData.clusterGroup = pets[petIndex].clusterGroup;
+                 else newPetData.clusterGroup = pets[pets.length - 1].clusterGroup;
+            }
+        }
+
         await writeCsv(PETS_CSV, petHeaders, pets);
+        
+        if (isAnomaly) {
+            return res.json({ success: true, flagged: true, message: 'Account creation pending review' });
+        }
         res.json({ success: true, message: 'Pet profile saved' });
 
     } catch (err) {
@@ -255,6 +336,180 @@ app.post('/api/upload', upload.single('media'), (req, res) => {
     }
     const filePath = `/uploads/${req.file.filename}`;
     res.json({ success: true, filePath });
+});
+
+// Breeds Endpoint
+app.get('/api/breeds', async (req, res) => {
+    try {
+        const type = req.query.type;
+        const file = type === 'dog' ? 'DB/updated_dog_breeds.csv' : 'DB/updated_cat_breeds.csv';
+        const breeds = await mlPipeline.readCsv(file);
+        const breedNames = breeds.map(b => b.Name).filter(Boolean);
+        res.json({ success: true, breeds: breedNames });
+    } catch (err) {
+        console.error("Error fetching breeds:", err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// ML Pipeline Endpoints
+function sanitizeAgnes(node) {
+    if (!node) return null;
+    return {
+        height: node.height,
+        size: node.size,
+        isLeaf: node.isLeaf,
+        children: node.children ? node.children.map(sanitizeAgnes) : []
+    };
+}
+
+app.get('/api/admin/dashboard', async (req, res) => {
+    try {
+        const pets = await mlPipeline.readCsv(PETS_CSV);
+        const flaggedUsers = pets.filter(p => p.isFlagged === 'true');
+        const approvedUsers = pets.filter(p => p.isFlagged !== 'true');
+        
+        const clustering = await mlPipeline.runClustering();
+        const interactions = await mlPipeline.readCsv(INTERACTIONS_CSV);
+        // Return structured data for the tabbed interface
+        res.json({ 
+            success: true, 
+            suspicious: flaggedUsers, 
+            users: approvedUsers,
+            interactions: interactions,
+            kmeans: clustering.kmeans, 
+            agnes: sanitizeAgnes(clustering.agnes), 
+            apriori: globalAprioriRules 
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to load dashboard data' });
+    }
+});
+
+app.post('/api/admin/accept', async (req, res) => {
+    try {
+        const { username } = req.body;
+        let pets = await mlPipeline.readCsv(PETS_CSV);
+        const petIndex = pets.findIndex(p => p.username === username);
+        if (petIndex > -1) {
+            pets[petIndex].isFlagged = 'false';
+            
+            // Re-assign cluster
+            const dataToCluster = mlPipeline.extractFeatures(pets.filter(p => p.isFlagged !== 'true'));
+            if (dataToCluster.length >= 3) {
+                 const kmeansRes = require('ml-kmeans').kmeans(dataToCluster, 3);
+                 let validIndex = 0;
+                 pets.forEach(p => {
+                     if (p.isFlagged !== 'true') {
+                         p.clusterGroup = kmeansRes.clusters[validIndex++];
+                     }
+                 });
+            }
+            await mlPipeline.writeCsv(PETS_CSV, petHeaders, pets);
+        }
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to accept user' });
+    }
+});
+
+app.post('/api/admin/refuse', async (req, res) => {
+    try {
+        const { username } = req.body;
+        let pets = await mlPipeline.readCsv(PETS_CSV);
+        pets = pets.filter(p => p.username !== username);
+        await mlPipeline.writeCsv(PETS_CSV, petHeaders, pets);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to refuse user' });
+    }
+});
+
+app.get('/api/playdates', async (req, res) => {
+    try {
+        const username = req.query.username;
+        if (!username) return res.status(400).json({ error: 'Username required' });
+        const candidates = await mlPipeline.getPlaydatesFeed(username);
+        res.json({ success: true, candidates });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch playdates' });
+    }
+});
+
+app.post('/api/interactions', async (req, res) => {
+    try {
+        const { username, targetUsername, action } = req.body;
+        let interactions = await mlPipeline.readCsv(INTERACTIONS_CSV);
+        interactions.push({ username, targetUsername, action, timestamp: Date.now() });
+        await mlPipeline.writeCsv(INTERACTIONS_CSV, interactionHeaders, interactions);
+        
+        // Handle message request on a single "like"
+        if (action === 'like') {
+            let messages = await mlPipeline.readCsv(MESSAGES_CSV);
+            // Check if already requested or mutual
+            const existing = messages.find(m => (m.fromUser === username && m.toUser === targetUsername) || (m.fromUser === targetUsername && m.toUser === username));
+            if (!existing) {
+                // Creates a pending request for the target user to accept
+                messages.push({ fromUser: username, toUser: targetUsername, status: 'pending' });
+                await mlPipeline.writeCsv(MESSAGES_CSV, messageHeaders, messages);
+            }
+        }
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to record interaction' });
+    }
+});
+
+app.post('/api/messages/accept', async (req, res) => {
+    try {
+        const { fromUser, toUser } = req.body;
+        let messages = await mlPipeline.readCsv(MESSAGES_CSV);
+        const msgIndex = messages.findIndex(m => m.fromUser === fromUser && m.toUser === toUser);
+        if (msgIndex > -1) {
+            messages[msgIndex].status = 'accepted';
+            await mlPipeline.writeCsv(MESSAGES_CSV, messageHeaders, messages);
+        }
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to accept message' });
+    }
+});
+
+app.get('/api/messages', async (req, res) => {
+    try {
+        const username = req.query.username;
+        if (!username) return res.status(400).json({ error: 'Username required' });
+        let messages = await mlPipeline.readCsv(MESSAGES_CSV);
+        messages = messages.filter(m => m.toUser === username || m.fromUser === username);
+        res.json({ success: true, messages });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch messages' });
+    }
+});
+
+app.get('/api/chat', async (req, res) => {
+    try {
+        const { userA, userB } = req.query;
+        if (!userA || !userB) return res.status(400).json({ error: 'Users required' });
+        let chats = await mlPipeline.readCsv(CHAT_CSV);
+        chats = chats.filter(c => (c.fromUser === userA && c.toUser === userB) || (c.fromUser === userB && c.toUser === userA));
+        res.json({ success: true, chats });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch chat' });
+    }
+});
+
+app.post('/api/chat', async (req, res) => {
+    try {
+        const { fromUser, toUser, message } = req.body;
+        let chats = await mlPipeline.readCsv(CHAT_CSV);
+        chats.push({ fromUser, toUser, message, timestamp: Date.now() });
+        await mlPipeline.writeCsv(CHAT_CSV, chatHeaders, chats);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to send message' });
+    }
 });
 
 app.listen(PORT, () => {

@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>bsbsbobi</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap"
     rel="stylesheet" />
   <style>
@@ -175,6 +176,94 @@
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+
+    /* ── SWIPE CARDS ── */
+    .card-container {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      margin: 20px auto;
+    }
+
+    .swipe-card {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--white);
+      border-radius: var(--radius);
+      border: 3px solid var(--black);
+      box-shadow: 6px 6px 0 var(--black);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease;
+    }
+
+    .swipe-card img {
+      width: 100%;
+      height: 60%;
+      object-fit: cover;
+      border-bottom: 3px solid var(--black);
+    }
+
+    .swipe-card-info {
+      padding: 15px;
+      flex: 1;
+    }
+
+    .swipe-card-title {
+      font-family: var(--font-head);
+      font-size: 1.5rem;
+      margin-bottom: 5px;
+    }
+
+    .swipe-card-subtitle {
+      font-weight: 700;
+      color: #666;
+    }
+
+    .swipe-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+      width: 100%;
+    }
+
+    .action-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 3px solid var(--black);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 3px 3px 0 var(--black);
+      background: var(--white);
+    }
+
+    .action-btn.skip { color: var(--black); font-size: 24px; font-weight: bold; }
+    .action-btn.like { color: var(--red); font-size: 24px; }
+
+    /* ── ADMIN DASHBOARD ── */
+    .admin-section {
+      width: 100%;
+      background: var(--white);
+      border: 2px solid var(--black);
+      border-radius: var(--radius);
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 3px 3px 0 var(--black);
+    }
+    .admin-section h3 { font-family: var(--font-head); margin-bottom: 10px; }
+    
+    .message-item {
+      padding: 10px;
+      border-bottom: 2px solid #ccc;
+      font-weight: bold;
     }
 
     /* ══ SCREEN 1 — INTRO ══ */
@@ -650,10 +739,10 @@
               <circle cx="12" cy="12" r="8" stroke="white" stroke-width="3" />
               <line x1="18" y1="18" x2="26" y2="26" stroke="white" stroke-width="3" stroke-linecap="round" />
             </svg></div>
-          <div class="nav-icon"><svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <div class="nav-icon" onclick="showScreen('screen-messages')"><svg width="28" height="28" viewBox="0 0 28 28" fill="none">
               <path d="M14 24s-11-7-11-14a6 6 0 0112 0 6 6 0 0110 0c0 7-11 14-11 14z" fill="#e83030" />
             </svg></div>
-          <div class="nav-icon"><svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <div class="nav-icon" onclick="showScreen('screen-admin')"><svg width="28" height="28" viewBox="0 0 28 28" fill="none">
               <polygon points="2,26 26,14 2,2 2,12 18,14 2,16" fill="#f0e070" stroke="#e8b800" stroke-width="1" />
             </svg></div>
         </div>
@@ -674,8 +763,8 @@
           <img
             src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/2wBDAQMDAwQDBAgEBAgQCwkLEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBD/wAARCACZAK0DASIAAhEBAxEB/8QAHAABAAIDAQEBAAAAAAAAAAAAAAcIBAUGCQMB/8QAThAAAQMDAgMDBgkGCA8AAAAAAQIDBAAFBgcRCBIhCRMxIjI4QWG0FBY2UXV2d7XTIzNCVXGVFRk0YnKBkaEXGCQlU1RXWIKEkpSWstX/xAAZAQEAAwEBAAAAAAAAAAAAAAAAAgQFAwH/xAAmEQACAgIABgIDAQEAAAAAAAAAAQIDBBESEyEyM0FRcQUxYcHw/9oADAMBAAIRAxEAPwD0rpSlYhtilKUApSlAKUpQClKUApSlAKUpQClKUApSlAKUpQClKUApSlAKUqrGLaSscVGoWsl4zzPM0tb2F5UcVxRNhv0i3t2VLMGO8ZSG2lJQ68t2QVKLqVjZKUjoK61VO16RyttVS2y09KpZoXxQataaa/3HhJ4wrlBeyF9aF4lljcRESPe21/m0KCAlvmcA8ggD8olbSt18u906jOuVb1IlCxWLcRSlKgTFKUoBSlKAUpSgFKVHOueskHRrE2rixZ5GQ5NepKLZjWOw1D4VeLg50Q0gHwQnz3F+CEJUT6gfUnJ6R42orbJGpVMdd9DM30U4bcl4lL5q5lMjXKwsIvT95g3d8Wpt1chtKoLVuWTGVES2ruwlbRUrl5zsTyjtez74lct4ntDXsszyJERkFju7tkmSYrfdNTORlp1L3JvshRS8AoDZPMkkBIISO9mPKtcTOFeRGx8KLM0pSq5YFKUoBSlKAVCvB78rOIX7Vpf3bAqaqhXg9+VnEL9q0v7tgVbxO9/RUy+1GXxq8JFh4rtM/wCCmX27VmuPlc3F7zuUmNJ6EtOKT5XdOcqQojcpISsAlOxifga4qb9qRHuegWubbtp1gwJS4VxjzNkO3Rlo8vwhPqU4noHNtwoFLiSQs8t36pVx9cJ+UZdIt/FNw9OPWvV7AUCV/kg8u8w2kndrl8FvJSVBIIPeIUppQVugJt21K2OvZUqtdUt+i1tKg/hH4o8V4pdMmcptobgZFbCmJkVmK/ykGVsfKAPUtOcpUhXsUk+UhQE4VlSi4vTNSMlJbQpSleEhSlKAUpXylSosGK9OnSWo8aO2p1551YQhtCRupSlHoAACST0AoDRahZ/iul2GXbPs1ubcCz2aOqRIdURzK281tA/TcWrZKUDqpSgB1NR3w8aZZVmWWOcU2tdpdhZRd4qouI49I33xOyudQ2pPh8NfGy31kbp6NjYJKa5rTqzSuLzUWDrFksR5rSHCLgXcItchJT8YrqyrYXx0eBjN+UmMk78x5nDt0BtnWjj08C4pfszsi7jfDH9FdO0P9C3VX6Hb95ZqtHY0+jtl/wBdX/cYdWX7Q/0LdVfodv3lmq0djT6O2X/XV/3GHUsrxkcXyF+qUpWYaYpSlAKUpQCoV4PflZxC/atL+7YFTVUK8Hvys4hftWl/dsCreJ3v6KmX2oslSla+/ZBYsVs0vIsnvUG02qA2Xpc6dIQwww2PFS3FkJSPaTWgZ5UHOuB7ULFOJZfEjwqZ1j2JSr6y6MosN6jvu2+4vLVupfKyQdlnZahukpcRzJPlEDvvi7x5fr7QT923n8ete52jfDVcbu9YtPJOY6iTIxAfRiOKzbgG9/DyuRKVDoeqSR0PWv3+MX4cLTcY9r1FOb6ePy1csf424lOgIcPsV3akgdPEkCoSrhN7kicbJwWosz/i7x5fr7QT923n8enxd48v19oJ+7bz+PU/Y5kuO5jY4eT4nfYF5tFxaD0SfAkIfjvo325kOIJSobgjofEGtlUeRX8EufZ8lb/i7x5fr7QT923n8enxd48v19oJ+7bz+PVkKU5FfwOfZ8lb/i7x5fr7QT923n8etRkehHE/rK3DwbXDOdOoen8iUh7IYWIQ7hHn3eKjdXwFTz7qg2y4vkDhRssoBSCAo72npRU1p7SDusa02YtstlusttiWa0QWIcCAw3GixmEBDbLKEhKEISOiUpSAAB4AVlUpXU5FdO0P9C3VX6Hb95ZqtHY0+jtl/wBdX/cYdWX7Q/0LdVfodv3lmq0djT6O2X/XV/3GHVfK8ZYxfIX6pSlZhpilKUApSlAKhXg9+VnEL9q0v7tgVNVQrwe/KziF+1aX92wKt4ne/oqZfaiyVczqNppgmrmJysG1IxmJf7DNW24/ClBXItTawtB3SQQQpIO4IrpqVoGec5p9pzgulOLRcK04xW3Y9Y4RUWYUFkNthSjupR9alE9SpRJPrNfTOcCwvUzGJmGZ/jNvv9knp5ZEKcyHG17eB2PmqB6hQ2IPUEVXDI+1D4LsYv8AcMcm6oSZEm2SXIjzkOyzH2FOIUUq5HEtlLidwdlJJSfEEgg1rf42Dgl/2jXX/wAdnfhUBZfTbS/ANH8UYwfTTF4lgsUZ1x5qFF5uRK3FFS1bqJJJJ9Z9ngK6mtLheZYzqHiVoznDbq1c7HfYjc6BLbBCXWXE7pOygFJPXqkgEEEEAgit1QClKUBBGKcbnDfluqt50XYzwWnK7LIdiuxL3FctofdbXyKQyt8JDivWEjylJ8oAgEia7neLTZYDl0vF0iQITSeZcmS+lppI+crUQAP66o9xAcVnZlZdl15w3XW02y+3/HJsizTH5GJynJLDzDim3G0SkNBzlC0EeSvY7bjeoajah9ifFkNyUYetwtblDb1vvrrSd+p2bWoo/uoC8mlXGVoBrZqdd9JtMMtk3682Vp1+RIi259UBSG1JQpSJPL3ak8ytgrflVt5JVuN5uqGuFPL+HLOdMlX/AIYbFarXiaJ7kJxu32U2wKlNpQVlbZQhS1cq0eWd99/HxqZaArp2h/oW6q/Q7fvLNVo7Gn0dsv8Arq/7jDqy/aH+hbqr9Dt+8s1WjsafR2y/66v+4w6r5XjLGL5C/VKUrMNMUpSgFKUoBUK8Hvys4hftWl/dsCpqqF+EYNxs44hoBc3eTqc7JUgjYhDtqgKSf2HZWx9e1W8Tvf0VMvtRZClKVoGeVO1E7L7hB1Iy+45rcsJuNrnXV1UiW1aLm5GjLeUSVOBrqlBUT1CNk79dtySdDD7I3gyiy2ZLuNZLKQ04lamHr893boB35VcvKrY+B2IPtFXPpQGrxjGMfwvHrdieKWeLarPaY6IkKFFbCGmGUDZKUgerb+3xNbSlR7rDlOZYhbId2xppgxAtSJji2u8Ugnbk6eASeo3+fYeupQg5y4UXMDCs/I5McWppSl0W3pf8/X9JCpUPaRahagZtfXW7k3EctUZomQ6ljkKVnzEpIPnE9dj6gfZUw17ZW6pcLOv5T8Zd+IyHi3tOSSfR7/f+la9a+zx4W9eswfz3NMJkxb9NIVNmWmc5EMxQAHO6hO6FL2A3VsFH1k1wLPZE8GjbqHF4/lDqUqCi2u/OhKwD4HYA7H2EH21dKlQM45rTrTfBdJcQgYFpvjMKwWC2JKY0KKkhKdzupSlElS1qJJUtRKlE7kk10tKUBXTtD/Qt1V+h2/eWarR2NPo7Zf8AXV/3GHVle0ScQ1wV6qqcUEg2lpO5+cymQB/aRVauxpB/xdcuVsdjmsgA/wDIw6r5XjLGL5C/VKUrMNMUpSgFKUoBVcsDyq9aa8X+sWJwNPb9kvxztGP5hEbtUmC2ptLbS7fIWoTJLCSOZhrzCog77jqKsbVa+JXMk6I6x6Xa/iyXiTbbaqXi+UvQ4hU0m1XAoDK3HTshJbmtRiEqI371Xh4ixjS4bPsr5MeKv6J4GtVtipH8P6e6iWlZG/IcVl3AjpvtvATIT7PH1fsoOIXRhof53z6BYT13TkCHbQobeIKZiWiD7D69xX6dVMoc2MHQPUOUknbcLs7Gw3232fnoPznw32H7N/pH1Dz2XJaZRoLlsRtbiULdnXOzJDaSdivZma6SAOvQbn5q0zMO/pSlAKx58CHdIT1uuEdD8aQgtutrHRST4isilD2MnBqUXpo1WN4zZsTtibTY4gYjpUpZG5UpSj4lSj1J9X7ABW1qB9YeN3hz0Oy84Hm+YyXL+yyJM2DarZIuDkBkgELkdyhQa3BB5SebYg7bEEyzgme4dqdiduzrAMih3yw3Zrvoc6IvmbcTuQR12KVAghSVAKSQQQCCK9bbe2TttnfN2WtuT6tvq2b+lKV4czhLlrbpxAuMqzw7vMvlwhPORpMXH7XLu7kd9B2W078EbcDKwobEOFOx6HasQ6g6m3dQbxTQ+4sBQ5kysnvMS2x1j1bCMZUhJ8ei2UmtpkeS6lQLq9CxjTGNdoiEgtzJF+biIcJSCRyd2tY2USnqPVvWtN/1/WolnSzBEoBIHf5zLSo9PHZFqUNt+nj6qAqF2qGWaq43wnXODmOQYnEh5deLfaE2m1wJDr5Ul0y/5Y46kKSBF67R0777bjfY53ZNYu7j/CLDujjXIMkyC5XRB5SOZKVIi7+3rFPX2VU/tYdaM+1M1exfh/nWSzx5uKhLz0GxXd25JeuE5LfdNKU5GYV3iWwjYBHhI8d69P8AQfTRjR3RnDNMWe7K8ds8aHIW35rkkIBfcH9J0uK/4qqZctRSLeJHcmzvKUpWeaApSlAKUpQCuR1bxSHnWmmSYXcMbN/i3y3uW963iQhguodHISHF9EKSDzhXUgpBG52rrqV6nrqeNbK6cMuovELkFsn6CZbd8OsOdaXsRbbc5lxjS7o9eYhQPg1yaaS5GBbcQOUr7xRDiF8yUkhNTeNL8suhSrLNa8tloV+dh2pES1RT/RUyz8KT838oNRxrxpHlOQz7RrBo1PiWnVPDUKFrkSdxGu0FR5nrVM285h3bcHxbXstJSdzXe6Fa+4jrpY5blsakWfJrC6IWTYzcE93cLLN26tOoPnIJBKHU7oWBuDuFAalNqtj/AEy7qnVL+EnUpSuxxFKUoCHeHPQFGi9qy2bkE2FesrznJLlfr5d22SFSkvSHDGZJX5XI2ypKQjzUkr5eh3O10c0JsOiV6zp/ELk61YcyvYv7NiSyluNaZK2kokdxy+CHVoC+XYBJ6AbVJtKAUpSgONyPTNi/3Z+9xc3zKyynwjmFuvTiWBypCRyx3edlO4A35UDc9T1JNQ3xL5rdeF/R++6s3riHy19dvZLFqtlxgWVxNwnrSQxHSG4TbpJUN1ELJShK1kbJNTZqbqhgejmF3DUHUnJIljsVsRzPSZCvOUfNbQkeU44o9EoSConwFeLWquoetXam8R8TEsEt8q2YdaVKFtiyCTHtEHcB2fLKfJLy9h0BP6DaSdipXjaits9SbekdB2dGjeW8TfErd+JzUtT0y347dnLzJlOIIbnXt0lxppHq2aKg6Up6JAZSRsoV7D1wuiOjmH6CaZWTS3B4pbt1oZ2W8sflZchR5nZDp9a1rJJ9QGyRslIA7qsq6zmS2atNfLjoUpSuR1FKUoBSlKAUpSgFRNq3oFFzu9Q9RsDyqZgOpNob7uBk9saSsvNbg/BZzB2TNjEpH5Nw+SRukp67yzSpRk4vaIyipLTIOsPFtdtNJTGJcX2JN4JcCtLEfMLaHZOKXNR6AiSU80JZO/5KQAOm4Wd9hYyzXqzZFbWL1j92hXO3ykc7EuG+h5l1PzpWglKh7Qa5yfb4F1hP226Qo8yHKbU0/HkNpcbdQRsUqSoEKBHiD0qtmScCWFW+4yMk4e9RMw0Vvb7pfWMWuCxa3nD/AKa3qUGlJ/mJKE+yrteWn0mUrMRrrAuHSqJzsb7VHAUlvFtaNM9SIbPktG9WgQJix/OS02lH9ZdJ6Dr41zknWPtiYzndNcPGmEsAfnW5kYA/9VzSf7qsK6t+yu6bF6PQ+ledf+Gvtjf92vTX/vYn/wBWtTdtQe2fyPmjQ9NcKxXn6CREetLnJ7dnpb//AKnwr3mw+Uecqfwz0neeajtLffdQ202krWtagEpSBuSSfAAVUbiT7Tjh00Fjy7PYL21n+WslTabVZHwthlwf6xLALaADuClPOsEbFI8aq5duBftBuINwN8Q/ExHhWh8/loCLi/KQnfxIhMJaik7E/pj5vCpw0U7LHhq0sfjXjK4c7UG8MKDgcvZSIKVjfzYiPIUNv0XS6N/mrnLJrj72dI41kvWil0DEuMjtSM6j5Tl0xVjwGFIUliUtpbNntqN/LTEY35pT+3Qq3J6ALcQOUD1I4eeHPTXhowNrBdOraUhZS7cblICVS7i+Bt3rywBvtuQlI2SkHYDqSZKhw4lviswYEVmNGjoS0yyygIQ2gDYJSkdAAOgAr7VRtvlb09F2qiNXX2KUpXE7ilKUApSlAKUpQClKUApSlAKUpQClKUApSlAKUpQClKUApSlAKUpQClKUB//Z"
             alt="sad cat" class="status-img" />
-          <p class="status-text error">something is<br>wrong</p>
-          <p class="status-sub">your account will be reviewed<br>by one of our team shortly</p>
+          <p class="status-text error">Account Pending Review</p>
+          <p class="status-sub" style="margin-top: 20px;">Your account is being created please wait 3-7 working days for our team to review it.</p>
         </div>
         <div class="bottom-nav" style="justify-content:space-between;padding:14px 30px;">
           <div class="nav-icon" onclick="showScreen('screen-explore')"><svg width="28" height="28" viewBox="0 0 28 28"
@@ -746,7 +835,8 @@
             </div>
             <input class="input-field" id="pet-birth" type="text" placeholder="birth year" />
             <textarea class="textarea-field" id="pet-vaccination" placeholder="vaccination history"></textarea>
-            <input class="input-field" id="pet-breed" type="text" placeholder="Breed name" />
+            <input class="input-field" id="pet-breed" list="breed-list" type="text" placeholder="Breed name" />
+            <datalist id="breed-list"></datalist>
             <input class="input-field" id="pet-length" type="text" placeholder="animal Length" />
             <input class="input-field" id="pet-weight" type="text" placeholder="animal weight" />
             <input class="input-field" id="pet-color" type="text" placeholder="color" />
@@ -824,12 +914,12 @@
               <line x1="18" y1="18" x2="26" y2="26" stroke="white" stroke-width="3" stroke-linecap="round" />
             </svg>
           </div>
-          <div class="nav-icon">
+          <div class="nav-icon" onclick="showScreen('screen-messages')">
             <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
               <path d="M14 24s-11-7-11-14a6 6 0 0112 0 6 6 0 0110 0c0 7-11 14-11 14z" fill="#e83030" />
             </svg>
           </div>
-          <div class="nav-icon">
+          <div class="nav-icon" onclick="showScreen('screen-admin')">
             <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
               <polygon points="2,26 26,14 2,2 2,12 18,14 2,16" fill="#f0e070" stroke="#e8b800" stroke-width="1" />
             </svg>
@@ -837,7 +927,7 @@
         </div>
       </div>
 
-      <!-- SCREEN: EXPLORE (PLACEHOLDER) -->
+      <!-- SCREEN: EXPLORE / PLAYDATES -->
       <div class="screen" id="screen-explore">
         <div class="pet-header">
           <button class="back-btn" onclick="showScreen('screen-intro')">&#8592;</button>
@@ -849,10 +939,17 @@
             <img class="nav-pet-avatar-img" style="display:none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
           </div>
         </div>
-        <div class="profile-body" style="justify-content: center; text-align: center;">
-          <h2 class="pet-title">Explore</h2>
-          <!-- This is a placeholder for the explore page. -->
-          <p style="font-weight: 600; color: #1a1a1a;">This is a placeholder for the explore page.</p>
+        <div class="profile-body" style="align-items: stretch; padding-top:0;">
+          <h2 class="pet-title" style="text-align:center;">Playdates</h2>
+          
+          <div class="card-container" id="playdates-container">
+            <p style="text-align:center; font-weight:bold;">Loading candidates...</p>
+          </div>
+          
+          <div class="swipe-actions">
+            <button class="action-btn skip" onclick="swipe('skip')">X</button>
+            <button class="action-btn like" onclick="swipe('like')">♥</button>
+          </div>
         </div>
         <div class="bottom-nav">
           <div class="nav-icon" onclick="showScreen('screen-explore')">
@@ -861,12 +958,147 @@
               <line x1="18" y1="18" x2="26" y2="26" stroke="white" stroke-width="3" stroke-linecap="round" />
             </svg>
           </div>
-          <div class="nav-icon" onclick="showScreen('screen-intro')">
+          <div class="nav-icon" onclick="showScreen('screen-messages')">
             <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
               <path d="M14 24s-11-7-11-14a6 6 0 0112 0 6 6 0 0110 0c0 7-11 14-11 14z" fill="#e83030" />
             </svg>
           </div>
-          <div class="nav-icon" onclick="showScreen('screen-intro')">
+          <div class="nav-icon" onclick="showScreen('screen-admin')">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <polygon points="2,26 26,14 2,2 2,12 18,14 2,16" fill="#f0e070" stroke="#e8b800" stroke-width="1" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN: MESSAGES -->
+      <div class="screen" id="screen-messages">
+        <div class="pet-header">
+          <button class="back-btn" onclick="showScreen('screen-explore')">&#8592;</button>
+          <div class="pet-user-icon" onclick="showScreen('screen-petprofile')">
+            <svg class="nav-pet-avatar-svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
+              <circle cx="13" cy="9" r="6" fill="white" />
+              <ellipse cx="13" cy="24" rx="10" ry="7" fill="white" />
+            </svg>
+            <img class="nav-pet-avatar-img" style="display:none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
+          </div>
+        </div>
+        <div class="profile-body" style="align-items: stretch; padding-top:0;">
+          <h2 class="pet-title" style="text-align:center;">Messages</h2>
+          <div id="messages-container">
+             <p style="text-align:center; font-weight:bold;">Loading messages...</p>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-icon" onclick="showScreen('screen-explore')">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <circle cx="12" cy="12" r="8" stroke="white" stroke-width="3" />
+              <line x1="18" y1="18" x2="26" y2="26" stroke="white" stroke-width="3" stroke-linecap="round" />
+            </svg>
+          </div>
+          <div class="nav-icon" onclick="showScreen('screen-messages')">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <path d="M14 24s-11-7-11-14a6 6 0 0112 0 6 6 0 0110 0c0 7-11 14-11 14z" fill="#e83030" />
+            </svg>
+          </div>
+          <div class="nav-icon" onclick="showScreen('screen-admin')">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <polygon points="2,26 26,14 2,2 2,12 18,14 2,16" fill="#f0e070" stroke="#e8b800" stroke-width="1" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN: CHAT -->
+      <div class="screen" id="screen-chat">
+        <div class="pet-header">
+          <button class="back-btn" onclick="showScreen('screen-messages')">&#8592;</button>
+          <div class="pet-user-icon">
+            <svg class="nav-pet-avatar-svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
+              <circle cx="13" cy="9" r="6" fill="white" />
+              <ellipse cx="13" cy="24" rx="10" ry="7" fill="white" />
+            </svg>
+          </div>
+        </div>
+        <div class="profile-body" style="align-items: stretch; padding-top:0; height: calc(100vh - 150px); display:flex; flex-direction:column;">
+          <h2 class="pet-title" style="text-align:center; font-size:1.5rem;" id="chat-partner-title">Chat</h2>
+          <div id="chat-history" style="flex:1; overflow-y:auto; padding:10px; background:white; border-radius:10px; margin-bottom:10px; border:2px solid #ccc;">
+             <p style="text-align:center; font-weight:bold;">Loading chat...</p>
+          </div>
+          <div style="display:flex; height:50px;">
+             <input type="text" id="chat-input" class="input-field" placeholder="Type a message..." style="flex:1; margin-bottom:0; border-radius: 20px 0 0 20px;" />
+             <button class="btn" onclick="sendChatMessage()" style="border-radius: 0 20px 20px 0; margin-left:-5px; width:80px; padding:0;">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN: ADMIN DASHBOARD -->
+      <div class="screen" id="screen-admin">
+        <div class="pet-header">
+          <button class="back-btn" onclick="showScreen('screen-explore')">&#8592;</button>
+          <div class="pet-user-icon" onclick="showScreen('screen-petprofile')">
+            <svg class="nav-pet-avatar-svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
+              <circle cx="13" cy="9" r="6" fill="white" />
+              <ellipse cx="13" cy="24" rx="10" ry="7" fill="white" />
+            </svg>
+            <img class="nav-pet-avatar-img" style="display:none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
+          </div>
+        </div>
+        <div class="profile-body" style="align-items: stretch; padding-top:0;">
+          <h2 class="pet-title" style="text-align:center;">Admin Analytics</h2>
+          
+          <div style="display:flex; justify-content:space-around; margin-bottom: 10px;">
+            <button class="btn" onclick="showAdminTab('tab-flagged')" style="flex:1; margin:2px; padding:8px; font-size:12px;">Flagged</button>
+            <button class="btn" onclick="showAdminTab('tab-search')" style="flex:1; margin:2px; padding:8px; font-size:12px;">Search</button>
+            <button class="btn" onclick="showAdminTab('tab-system')" style="flex:1; margin:2px; padding:8px; font-size:12px;">System</button>
+          </div>
+
+          <div id="tab-flagged" class="admin-tab" style="display:block;">
+            <div class="admin-section">
+              <h3>Flagged Users</h3>
+              <div id="admin-suspicious" style="font-size: 0.9rem; overflow-x: auto;">Loading...</div>
+            </div>
+          </div>
+
+          <div id="tab-search" class="admin-tab" style="display:none;">
+            <div class="admin-section">
+              <h3>User Search</h3>
+              <input type="text" id="admin-search-input" class="input-field" placeholder="Username" style="margin-bottom:10px;">
+              <button class="btn" onclick="searchAdminUser()" style="margin-bottom: 10px;">Search</button>
+              <div id="admin-search-result" style="margin-top:15px; font-size: 0.9rem; min-height:100px;">Search for a user to see graphs and cluster data.</div>
+            </div>
+          </div>
+
+          <div id="tab-system" class="admin-tab" style="display:none;">
+            <div class="admin-section">
+              <h3>K-Means Clusters</h3>
+              <div id="admin-kmeans" style="font-size: 0.9rem; overflow-x: auto; max-width: 400px; margin: 0 auto;"><canvas id="chart-kmeans"></canvas></div>
+            </div>
+            
+            <div class="admin-section">
+              <h3>AGNES Live Dendrogram</h3>
+              <div id="admin-agnes" style="font-size: 0.9rem; overflow-x: auto; max-width: 400px; margin: 0 auto;"><canvas id="chart-agnes"></canvas></div>
+            </div>
+            
+            <div class="admin-section">
+              <h3>Apriori Association Rules</h3>
+              <div id="admin-apriori" style="font-size: 0.9rem; overflow-x: auto; max-width: 400px; margin: 0 auto;"><canvas id="chart-apriori"></canvas></div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-icon" onclick="showScreen('screen-explore')">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <circle cx="12" cy="12" r="8" stroke="white" stroke-width="3" />
+              <line x1="18" y1="18" x2="26" y2="26" stroke="white" stroke-width="3" stroke-linecap="round" />
+            </svg>
+          </div>
+          <div class="nav-icon" onclick="showScreen('screen-messages')">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <path d="M14 24s-11-7-11-14a6 6 0 0112 0 6 6 0 0110 0c0 7-11 14-11 14z" fill="#e83030" />
+            </svg>
+          </div>
+          <div class="nav-icon" onclick="showScreen('screen-admin')">
             <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
               <polygon points="2,26 26,14 2,2 2,12 18,14 2,16" fill="#f0e070" stroke="#e8b800" stroke-width="1" />
             </svg>
@@ -906,13 +1138,37 @@
       const t = document.getElementById(id);
       if (t) t.classList.add('active');
       window.scrollTo(0, 0);
+
+      // Load data based on screen
+      if (id === 'screen-explore') {
+        loadExploreFeed();
+      } else if (id === 'screen-admin') {
+        loadAdminDashboard();
+      } else if (id === 'screen-messages') {
+        loadMessages();
+      }
     }
 
-    function selectType(type) {
+    let availableBreeds = [];
+    async function selectType(type) {
       document.getElementById('radio-cat').classList.remove('selected');
       document.getElementById('radio-dog').classList.remove('selected');
       document.getElementById('radio-' + type).classList.add('selected');
       selectedPetType = type;
+      try {
+        const response = await fetch('/api/breeds?type=' + type);
+        const data = await response.json();
+        if (data.success) {
+           availableBreeds = data.breeds;
+           const datalist = document.getElementById('breed-list');
+           datalist.innerHTML = '';
+           availableBreeds.forEach(b => {
+             const option = document.createElement('option');
+             option.value = b;
+             datalist.appendChild(option);
+           });
+        }
+      } catch(e) {}
     }
 
     function toggleGender() {
@@ -1104,6 +1360,10 @@
         alert("All fields are mandatory");
         return;
       }
+      if (availableBreeds.length > 0 && !availableBreeds.includes(breed)) {
+        alert("Please select a valid breed from the auto-complete list.");
+        return;
+      }
       
       if (!petImageFile && (!currentPet || !currentPet.photoPath)) {
         alert("Please upload a pet photo");
@@ -1134,18 +1394,18 @@
         const data = await response.json();
         
         if (data.success) {
+          if (data.flagged) {
+            showScreen('screen-notcreated');
+            return;
+          }
+
           const isNewPet = !currentPet;
           currentPet = petData;
           document.getElementById('pet-back-btn').style.visibility = 'visible';
           populateProfileData();
           
           if (isNewPet) {
-            const isAnomaly = Math.random() > 0.5; // placeholder anomaly detection
-            if (isAnomaly) {
-              showScreen('screen-notcreated');
-            } else {
-              showScreen('screen-created');
-            }
+             showScreen('screen-created');
           } else {
             showScreen('screen-userprofile');
           }
@@ -1256,6 +1516,419 @@
            });
         }
       }
+    }
+
+    // --- ML PIPELINE & UI INTEGRATION ---
+    let currentFeed = [];
+    let currentCardIndex = 0;
+
+    async function loadExploreFeed() {
+      if (!currentUser) return;
+      document.getElementById('playdates-container').innerHTML = '<p style="text-align:center; font-weight:bold;">Loading candidates...</p>';
+      
+      try {
+        const response = await fetch(`/api/playdates?username=${currentUser.username}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          currentFeed = data.candidates || [];
+          currentCardIndex = 0;
+          renderCurrentCard();
+        } else {
+          document.getElementById('playdates-container').innerHTML = '<p style="text-align:center;">Failed to load feed.</p>';
+        }
+      } catch (err) {
+        document.getElementById('playdates-container').innerHTML = '<p style="text-align:center;">Error loading feed.</p>';
+      }
+    }
+
+    function renderCurrentCard() {
+      const container = document.getElementById('playdates-container');
+      
+      if (currentCardIndex >= currentFeed.length) {
+        container.innerHTML = '<p style="text-align:center; font-weight:bold; margin-top:50px;">No more pets nearby!<br>Check back later.</p>';
+        return;
+      }
+      
+      const pet = currentFeed[currentCardIndex];
+      const imgPath = pet.photoPath || 'data:image/jpeg;base64,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';
+      
+      let html = `
+        <div class="swipe-card" id="current-card">
+          <img src="${imgPath}" alt="pet photo">
+          <div class="swipe-card-info">
+            <h3 class="swipe-card-title">${pet.petName} (${pet.type})</h3>
+            <p class="swipe-card-subtitle">Match Score: ${pet.matchScore || 'N/A'}</p>
+            <p><strong>Breed:</strong> ${pet.breed || 'Unknown'}</p>
+            <p><strong>Age:</strong> ${new Date().getFullYear() - (pet.birthYear || 2020)} years</p>
+            <p><strong>Personality:</strong> ${pet.personality || 'Unknown'}</p>
+          </div>
+        </div>
+      `;
+      container.innerHTML = html;
+    }
+
+    async function swipe(action) {
+      if (currentCardIndex >= currentFeed.length || !currentUser) return;
+      
+      const pet = currentFeed[currentCardIndex];
+      const card = document.getElementById('current-card');
+      
+      if (action === 'like') {
+        card.style.transform = 'translate(100vw, -20px) rotate(15deg)';
+      } else {
+        card.style.transform = 'translate(-100vw, -20px) rotate(-15deg)';
+      }
+      
+      try {
+        await fetch('/api/interactions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: currentUser.username,
+            targetUsername: pet.username,
+            action: action
+          })
+        });
+      } catch (err) {
+        console.error("Interaction failed to log");
+      }
+      
+      setTimeout(() => {
+        currentCardIndex++;
+        renderCurrentCard();
+      }, 300);
+    }
+
+    function showAdminTab(tabId) {
+      document.querySelectorAll('.admin-tab').forEach(el => el.style.display = 'none');
+      document.getElementById(tabId).style.display = 'block';
+    }
+
+    let adminAllUsers = [];
+    let adminInteractions = [];
+
+    async function loadAdminDashboard() {
+      document.getElementById('admin-suspicious').innerText = 'Loading...';
+      // Removed loading text overwrites for chart containers so canvas elements remain intact
+
+      try {
+        const response = await fetch('/api/admin/dashboard');
+        const data = await response.json();
+        
+        if (data.success) {
+          adminAllUsers = data.users || [];
+          adminInteractions = data.interactions || [];
+          
+          // Suspicious Profiles
+          let susHtml = '<ul style="padding-left:15px; margin:0;">';
+          if (data.suspicious && data.suspicious.length > 0) {
+            data.suspicious.forEach(p => {
+              susHtml += `<li style="margin-bottom:8px;">
+                <strong>${p.username}</strong>
+                <br>
+                <button onclick="adminAction('accept', '${p.username}')" style="background:#4caf50;color:white;border:none;padding:5px 10px;border-radius:3px;cursor:pointer;margin-top:5px;font-weight:bold;">Accept</button>
+                <button onclick="adminAction('refuse', '${p.username}')" style="background:#f44336;color:white;border:none;padding:5px 10px;border-radius:3px;cursor:pointer;margin-top:5px;margin-left:5px;font-weight:bold;">Refuse</button>
+              </li>`;
+            });
+          } else {
+            susHtml += '<li>No flagged profiles pending.</li>';
+          }
+          susHtml += '</ul>';
+          document.getElementById('admin-suspicious').innerHTML = susHtml;
+          
+          // Render Charts
+          renderChartKMeans(data.kmeans);
+          renderChartAgnes(data.agnes);
+          renderChartApriori(data.apriori);
+        }
+      } catch (err) {
+        document.getElementById('admin-suspicious').innerText = 'Error loading admin data.';
+      }
+    }
+
+    async function adminAction(action, username) {
+      if(!confirm(`Are you sure you want to ${action} user ${username}?`)) return;
+      try {
+        await fetch(`/api/admin/${action}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username })
+        });
+        loadAdminDashboard();
+      } catch (e) {
+        alert("Action failed.");
+      }
+    }
+
+    function searchAdminUser() {
+      const q = document.getElementById('admin-search-input').value.trim().toLowerCase();
+      const resDiv = document.getElementById('admin-search-result');
+      if (!q) { resDiv.innerHTML = 'Enter a username.'; return; }
+      
+      const user = adminAllUsers.find(u => u.username.toLowerCase() === q);
+      if (!user) {
+        resDiv.innerHTML = '<span style="color:red">User not found.</span>';
+        return;
+      }
+      
+      // Calculate System Averages
+      let totalAge = 0; let totalWeight = 0; let validCount = 0;
+      const currentYear = new Date().getFullYear();
+      adminAllUsers.forEach(u => {
+          let a = currentYear - (parseInt(u.birthYear) || currentYear);
+          let w = parseFloat(u.weight) || 0;
+          if (w > 0) { totalAge += a; totalWeight += w; validCount++; }
+      });
+      const avgAge = validCount ? totalAge / validCount : 0;
+      const avgWeight = validCount ? totalWeight / validCount : 0;
+      
+      const userAge = currentYear - (parseInt(user.birthYear) || currentYear);
+      const userWeight = parseFloat(user.weight) || 0;
+      const diffAge = userAge - avgAge;
+      const diffWeight = userWeight - avgWeight;
+      const ageStr = diffAge >= 0 ? `+${diffAge.toFixed(1)} yrs older` : `${diffAge.toFixed(1)} yrs younger`;
+      const weightStr = diffWeight >= 0 ? `+${diffWeight.toFixed(1)} lbs heavier` : `${diffWeight.toFixed(1)} lbs lighter`;
+
+      // Calculate Popularity Score (Total Likes Received)
+      const likesReceived = adminInteractions.filter(i => i.targetUsername === user.username && i.action === 'like').length;
+
+      resDiv.innerHTML = `
+        <div style="border:1px solid #ccc; padding:10px; border-radius:5px; background:#f9f9f9;">
+          <strong>Username:</strong> ${user.username}<br>
+          <strong>Pet:</strong> ${user.petName} (${user.type})<br>
+          <strong>Cluster Group:</strong> <span style="background:var(--pink); color:white; padding:2px 6px; border-radius:10px;">Cluster ${user.clusterGroup !== '' && user.clusterGroup !== undefined ? user.clusterGroup : 'Unassigned'}</span><br><br>
+          
+          <div style="background:white; padding:10px; border-radius:5px; margin-bottom:10px;">
+            <p><strong>System Relative Metrics:</strong></p>
+            <ul style="margin-left:20px; font-size:0.9rem;">
+               <li><strong>Age:</strong> ${userAge} (${ageStr} than system average)</li>
+               <li><strong>Weight:</strong> ${userWeight} lbs (${weightStr} than system average)</li>
+               <li><strong>Popularity Score:</strong> ${likesReceived} Likes Received</li>
+            </ul>
+          </div>
+
+          <em>Scatter Plot Cluster Representation:</em>
+          <div style="width:100%; height:250px; background:white; margin-top:5px; border-radius:10px; overflow:hidden;">
+             <canvas id="search-scatter-plot"></canvas>
+          </div>
+        </div>
+      `;
+      
+      // Render Scatter Plot after DOM injection
+      renderUserScatterPlot(user);
+    }
+
+    async function loadMessages() {
+      if (!currentUser) return;
+      document.getElementById('messages-container').innerHTML = '<p style="text-align:center; font-weight:bold;">Loading messages...</p>';
+      
+      try {
+        const response = await fetch(`/api/messages?username=${currentUser.username}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          let html = '';
+          if (data.messages && data.messages.length > 0) {
+            data.messages.forEach(m => {
+              let actionBtn = '';
+              const otherUser = m.fromUser === currentUser.username ? m.toUser : m.fromUser;
+              
+              if (m.status === 'pending' && m.toUser === currentUser.username) {
+                actionBtn = `<button onclick="acceptMessage('${m.fromUser}', '${m.toUser}')" style="float:right; background:var(--pink); color:white; border:none; padding:4px 8px; border-radius:4px; font-weight:bold;">Accept</button>`;
+              } else if (m.status === 'accepted') {
+                actionBtn = `<button onclick="openChat('${otherUser}')" style="float:right; background:var(--pink-dark); color:white; border:none; padding:4px 8px; border-radius:4px; font-weight:bold;">Open Chat</button>`;
+              }
+              const displayStatus = m.status === 'accepted' ? '<span style="color:green">Active Chat</span>' : '<span style="color:orange">Pending</span>';
+              html += `<div class="message-item">
+                Match with ${otherUser} <br> 
+                Status: ${displayStatus}
+                ${actionBtn}
+              </div>`;
+            });
+          } else {
+            html = '<p style="text-align:center;">No pending messages or matches.</p>';
+          }
+          document.getElementById('messages-container').innerHTML = html;
+        }
+      } catch (err) {
+        document.getElementById('messages-container').innerHTML = '<p style="text-align:center;">Error loading messages.</p>';
+      }
+    }
+
+    async function acceptMessage(from, to) {
+      try {
+        await fetch('/api/messages/accept', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromUser: from, toUser: to })
+        });
+        loadMessages(); // reload
+      } catch(e) {}
+    }
+
+    // --- CHART.JS RENDERING ---
+    let kmeansChart, agnesChart, aprioriChart;
+
+    function renderChartKMeans(kmeansData) {
+       if(kmeansChart) kmeansChart.destroy();
+       const ctx = document.getElementById('chart-kmeans').getContext('2d');
+       const clusterCounts = {};
+       if(kmeansData && kmeansData.clusters) {
+           kmeansData.clusters.forEach(c => { clusterCounts['Cluster '+c] = (clusterCounts['Cluster '+c] || 0) + 1; });
+       }
+       kmeansChart = new Chart(ctx, {
+           type: 'bar',
+           data: {
+               labels: Object.keys(clusterCounts),
+               datasets: [{ label: 'Users', data: Object.values(clusterCounts), backgroundColor: '#f564a9' }]
+           }
+       });
+    }
+
+    function renderChartAgnes(agnesData) {
+       if(agnesChart) agnesChart.destroy();
+       const ctx = document.getElementById('chart-agnes').getContext('2d');
+       const heights = [];
+       function traverse(node) {
+          if(!node) return;
+          if(node.height > 0) heights.push(node.height);
+          if(node.children) node.children.forEach(traverse);
+       }
+       traverse(agnesData);
+       heights.sort((a,b) => b-a);
+       agnesChart = new Chart(ctx, {
+           type: 'line',
+           data: {
+               labels: heights.map((_, i) => 'Merge ' + (i+1)),
+               datasets: [{ label: 'Merge Distance', data: heights, borderColor: '#d43d87', fill: false, tension: 0.1 }]
+           }
+       });
+    }
+
+    function renderChartApriori(aprioriData) {
+       if(aprioriChart) aprioriChart.destroy();
+       const ctx = document.getElementById('chart-apriori').getContext('2d');
+       const sorted = (aprioriData || []).sort((a,b) => b.support - a.support).slice(0, 10);
+       aprioriChart = new Chart(ctx, {
+           type: 'bar',
+           data: {
+               labels: sorted.map(d => d.items.join(', ')),
+               datasets: [{ label: 'Support Frequency', data: sorted.map(d => d.support), backgroundColor: '#f0e070' }]
+           },
+           options: { indexAxis: 'y' }
+       });
+    }
+
+    let scatterChart;
+    function renderUserScatterPlot(targetUser) {
+        if (scatterChart) scatterChart.destroy();
+        const ctx = document.getElementById('search-scatter-plot').getContext('2d');
+        const currentYear = new Date().getFullYear();
+        
+        // Group points by cluster
+        const datasets = [];
+        const colors = ['#f564a9', '#f0e070', '#8884d8'];
+        
+        // Separate target user
+        const targetData = [{
+            x: currentYear - (parseInt(targetUser.birthYear) || currentYear),
+            y: parseFloat(targetUser.weight) || 0
+        }];
+        
+        // Create datasets for clusters 0, 1, 2
+        for (let i = 0; i <= 2; i++) {
+            const clusterUsers = adminAllUsers.filter(u => parseInt(u.clusterGroup) === i && u.username !== targetUser.username);
+            const data = clusterUsers.map(u => ({
+                x: currentYear - (parseInt(u.birthYear) || currentYear),
+                y: parseFloat(u.weight) || 0
+            }));
+            if (data.length > 0) {
+                datasets.push({
+                    label: `Cluster ${i}`,
+                    data: data,
+                    backgroundColor: colors[i % colors.length],
+                    pointRadius: 4
+                });
+            }
+        }
+        
+        // Add target user dataset
+        datasets.push({
+            label: `Target User (${targetUser.username})`,
+            data: targetData,
+            backgroundColor: 'black',
+            pointStyle: 'star',
+            pointRadius: 10,
+            pointHoverRadius: 12
+        });
+        
+        scatterChart = new Chart(ctx, {
+            type: 'scatter',
+            data: { datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { title: { display: true, text: 'Age (Years)' } },
+                    y: { title: { display: true, text: 'Weight (lbs)' } }
+                }
+            }
+        });
+    }
+
+    // --- CHAT INTERFACE ---
+    let currentChatPartner = null;
+    let chatInterval = null;
+
+    function openChat(otherUser) {
+        currentChatPartner = otherUser;
+        document.getElementById('chat-partner-title').innerText = 'Chat with ' + otherUser;
+        showScreen('screen-chat');
+        loadChat();
+        if(chatInterval) clearInterval(chatInterval);
+        chatInterval = setInterval(loadChat, 3000);
+    }
+
+    async function loadChat() {
+        if(!currentChatPartner || !currentUser) return;
+        try {
+           const response = await fetch(`/api/chat?userA=${currentUser.username}&userB=${currentChatPartner}`);
+           const data = await response.json();
+           if (data.success) {
+               const history = document.getElementById('chat-history');
+               let html = '';
+               data.chats.sort((a,b) => a.timestamp - b.timestamp).forEach(c => {
+                   const isMe = c.fromUser === currentUser.username;
+                   const align = isMe ? 'right' : 'left';
+                   const bg = isMe ? 'var(--pink)' : '#e0e0e0';
+                   const color = isMe ? 'white' : 'black';
+                   html += `<div style="text-align:${align}; margin-bottom:10px;">
+                               <span style="display:inline-block; background:${bg}; color:${color}; padding:8px 12px; border-radius:15px; max-width:80%; word-wrap:break-word; text-align:left;">
+                                   ${c.message}
+                               </span>
+                            </div>`;
+               });
+               if(html === '') html = '<p style="text-align:center; color:#888;">No messages yet. Say hi!</p>';
+               history.innerHTML = html;
+               history.scrollTop = history.scrollHeight;
+           }
+        } catch(e) {}
+    }
+
+    async function sendChatMessage() {
+        const input = document.getElementById('chat-input');
+        const msg = input.value.trim();
+        if(!msg || !currentChatPartner) return;
+        input.value = '';
+        try {
+           await fetch('/api/chat', {
+               method: 'POST',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({ fromUser: currentUser.username, toUser: currentChatPartner, message: msg })
+           });
+           loadChat();
+        } catch(e) {}
     }
   </script>
 </body>

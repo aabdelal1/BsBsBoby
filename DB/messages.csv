@@ -1,0 +1,10 @@
+fromUser,toUser,status
+1234,wren1711,pending
+1234,wadood,pending
+123,wren1711,pending
+123,n,accepted
+n,1234,pending
+n,wadood,pending
+n,user1,pending
+n,the_guy,pending
+n,wren1711,pending
