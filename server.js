@@ -185,16 +185,30 @@ app.put('/api/user/:username', async (req, res) => {
 
 app.post('/api/pet', async (req, res) => {
     try {
-        const { username } = req.body;
+        const { username, petName, type, gender, birthYear, vaccination, breed, length, weight, color, personality, photoPath } = req.body;
+        
         if (!username) return res.status(400).json({ error: 'Username is required' });
 
         let pets = await mlPipeline.readCsv(PETS_CSV);
         let petIndex = pets.findIndex(p => p.username === username);
 
-        const newPetData = mlPipeline.preprocess(req.body);
+        const newPetData = mlPipeline.preprocess({
+            username,
+            petName: petName || '',
+            type: type || '',
+            gender: gender || '',
+            birthYear: birthYear || '',
+            vaccination: vaccination || '',
+            breed: breed || '',
+            length: length || '',
+            weight: weight || '',
+            color: color || '',
+            personality: personality || '',
+            photoPath: photoPath || ''
+        });
 
-        // Gatekeeper
-        const isAnomaly = mlPipeline.gatekeeper(req.body);
+        // Pass the properly structured and typed data to the gatekeeper
+        const isAnomaly = mlPipeline.gatekeeper(newPetData);
         newPetData.isFlagged = isAnomaly ? 'true' : 'false';
         
         // Fast O(k) cluster assignment
@@ -209,7 +223,8 @@ app.post('/api/pet', async (req, res) => {
         res.json({ success: true, message: 'Pet profile saved' });
 
     } catch (err) {
-        res.status(500).json({ error: 'Server error' });
+        console.error("Pet Profile Error:", err);
+        res.status(500).json({ error: 'Server error while saving pet profile' });
     }
 });
 
@@ -221,12 +236,18 @@ app.post('/api/upload', upload.single('media'), (req, res) => {
 app.get('/api/breeds', async (req, res) => {
     try {
         const type = req.query.type;
-        const file = type === 'dog' ? 'DB/updated_dog_breeds.csv' : 'DB/updated_cat_breeds.csv';
+        // Construct the full absolute path so it resolves anywhere
+        const file = type === 'dog' 
+            ? path.join(__dirname, 'DB', 'updated_dog_breeds.csv') 
+            : path.join(__dirname, 'DB', 'updated_cat_breeds.csv');
+            
         const breeds = await mlPipeline.readCsv(file);
         const breedData = breeds.map(b => ({ id: b.breed_id, name: b.Name })).filter(b => b.name && b.id);
+        
         res.json({ success: true, breeds: breedData });
     } catch (err) {
-        res.status(500).json({ error: 'Server error' });
+        console.error("Breed Fetch Error:", err);
+        res.status(500).json({ error: 'Server error while fetching breeds' });
     }
 });
 

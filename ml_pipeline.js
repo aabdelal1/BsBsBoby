@@ -4,7 +4,7 @@ const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const csv = require('csv-parser');
 
 const { kmeans } = require('ml-kmeans');
-const hclust = require('ml-hclust'); // Used for admin dashboard tree
+const hclust = require('ml-hclust'); 
 const { RandomForestClassifier } = require('ml-random-forest');
 const { Apriori } = require('node-apriori');
 
@@ -15,8 +15,7 @@ const INTERACTIONS_CSV = path.join(DB_DIR, 'interactions.csv');
 // --- GLOBAL MODEL STATE ---
 let globalRfModel = null;
 let globalCentroids = null;
-// Min/Max bounds for [weight, length, age] to normalize inputs to 0.0 - 1.0
-let globalScalingParams = { min: [0, 0, 0], max: [100, 100, 25] }; 
+let globalScalingParams = { min: [0, 0, 0], max: [100, 100, 25] }; // [weight, length, age]
 
 // --- IO HELPERS ---
 
@@ -136,7 +135,6 @@ async function trainBackgroundModels() {
             if (userPet && targetPet) {
                 const f1 = normalizeFeatures(extractFeatures([userPet]))[0];
                 const f2 = normalizeFeatures(extractFeatures([targetPet]))[0];
-                // Feature vector is the absolute difference between the two pets
                 const diffVector = f1.map((val, i) => Math.abs(val - f2[i]));
                 
                 trainingData.push(diffVector);
@@ -144,7 +142,8 @@ async function trainBackgroundModels() {
             }
         });
 
-        if (trainingData.length > 0) {
+        const uniqueLabels = new Set(trainingLabels);
+        if (trainingData.length > 0 && uniqueLabels.size > 1) {
             const options = { seed: 3, maxFeatures: 2, replacement: true, nEstimators: 25 };
             globalRfModel = new RandomForestClassifier(options);
             globalRfModel.train(trainingData, trainingLabels);
@@ -163,7 +162,10 @@ function assignToCluster(newPetData) {
     let closestCluster = 0;
 
     globalCentroids.forEach((centroid, index) => {
-        const dist = Math.sqrt(centroid.centroid.reduce((sum, val, i) => sum + Math.pow(val - scaledFeat[i], 2), 0));
+        // Handle varying returns from different versions of ml-kmeans
+        const coords = Array.isArray(centroid) ? centroid : centroid.centroid;
+        
+        const dist = Math.sqrt(coords.reduce((sum, val, i) => sum + Math.pow(val - scaledFeat[i], 2), 0));
         if (dist < minDistance) {
             minDistance = dist;
             closestCluster = index;
