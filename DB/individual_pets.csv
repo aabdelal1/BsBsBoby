@@ -1,12 +1,13 @@
 username,petName,type,gender,birthYear,vaccination,breed,length,weight,color,personality,photoPath,isFlagged,clusterGroup
-wadood,botatto,cat,female,2017,none,street cat,14,25,gold,"touchy,friendly,sleepy,calm",/uploads/1778776255354.png,,0
-user1,reven,cat,female,2017,none,street cat,14,25,black,"active,touchy",/uploads/1778777000796.png,,0
-the_guy,botatto,cat,female,2017,1 1 1,street cat,14,25,gold,"active,touchy",/uploads/1778778597898.png,,0
-wren1711,hi,cat,female,2027,fully vaccinated,e,7cm,80kg,brown,"active,touchy,friendly",/uploads/1778795872812.png,,1
-123,hi,cat,female,2027,fully vaccinated,e,7,80,brown,"active,touchy,friendly",/uploads/1778795872812.png,,1
-n,m,dog,female,2027,fully vaccinated,DOG_007,7,80,brown,"active,touchy,friendly",/uploads/1778795872812.png,false,1
+wadood,botatto,cat,female,2017,none,CAT_055,35.56,0.2,gold,"touchy,friendly,sleepy,calm",/uploads/1778776255354.png,false,1
+user1,reven,cat,female,2017,none,street cat,14,25,black,"active,touchy",/uploads/1778777000796.png,,1
+the_guy,botatto,cat,female,2017,1 1 1,street cat,14,25,gold,"active,touchy",/uploads/1778778597898.png,,1
+wren1711,hi,cat,female,2027,fully vaccinated,e,7cm,80kg,brown,"active,touchy,friendly",/uploads/1778795872812.png,,0
+123,hi,cat,female,2027,fully vaccinated,e,7,80,brown,"active,touchy,friendly",/uploads/1778795872812.png,,0
+n,m,dog,female,2027,fully vaccinated,DOG_007,7,80,brown,"active,touchy,friendly",/uploads/1778795872812.png,false,0
 1234,joeseph,dog,male,2027,fully vaccinated,s,7,100,brown,"active,touchy,friendly",/uploads/1778800703247.jpg,false,2
 aaa,hi,cat,male,2024,none,CAT_007,7,80,brown,"active,touchy,friendly,sleepy",/uploads/1778855076975.jpg,false,0
 aaaa,joeseph,cat,male,2024,none,CAT_003,7,80,brown,"active,touchy,friendly,sleepy",/uploads/1778855304462.jpg,false,0
 aaaaa,hi,cat,male,2024,none,CAT_001,7,80,brown,"active,touchy,friendly",/uploads/1778856148725.png,false,0
-ss,hi,dog,male,2027,none,DOG_008,7,80,brown,"active,touchy,friendly",/uploads/1778856950157.png,false,4
+ss,hi,dog,male,2027,none,DOG_008,7,80,brown,"active,touchy,friendly",/uploads/1778856950157.png,false,0
+ibrahim,botatto,cat,female,2017,none,CAT_051,14,25,gold,"touchy,friendly,sleepy,calm",/uploads/1778776255354.png,false,1

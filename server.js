@@ -218,12 +218,22 @@ app.get('/api/admin/dashboard', async (req, res) => {
         const approvedUsers = pets.filter(p => p.isFlagged !== 'true').map(p => ({...p, breed: breedMap[p.breed] || p.breed}));
         const interactions = await mlPipeline.readCsv(INTERACTIONS_CSV);
         
+        // Build K-Means cluster counts from the stored clusterGroup on each pet
+        const kmeansClusterCounts = {};
+        approvedUsers.forEach(p => {
+            const g = p.clusterGroup !== undefined && p.clusterGroup !== '' ? String(p.clusterGroup) : null;
+            if (g !== null) kmeansClusterCounts[g] = (kmeansClusterCounts[g] || 0) + 1;
+        });
+        const kmeansPayload = { clusterCounts: kmeansClusterCounts, total: approvedUsers.length };
+
         // Instant O(1) lookup from the background cache
         const agnesTree = mlPipeline.getAgnesTree();
         
         res.json({ 
             success: true, suspicious: flaggedUsers, users: approvedUsers,
-            interactions: interactions, agnes: sanitizeAgnes(agnesTree), apriori: globalAprioriRules 
+            interactions: interactions,
+            kmeans: kmeansPayload,
+            agnes: sanitizeAgnes(agnesTree), apriori: globalAprioriRules 
         });
     } catch (err) { res.status(500).json({ error: 'Failed to load dashboard data' }); }
 });
