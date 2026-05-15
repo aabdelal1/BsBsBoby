@@ -25,11 +25,9 @@ const CHAT_CSV = path.join(DB_DIR, 'chat.csv');
 
 const mlPipeline = require('./ml_pipeline');
 
-// Ensure directories exist
 if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR);
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
 
-// CSV Headers
 const userHeaders = [
     { id: 'username', title: 'username' }, { id: 'email', title: 'email' },
     { id: 'phone', title: 'phone' }, { id: 'location', title: 'location' },
@@ -61,15 +59,12 @@ const chatHeaders = [
     { id: 'message', title: 'message' }, { id: 'timestamp', title: 'timestamp' }
 ];
 
-// Initialize empty files if they don't exist
 [
     { path: USERS_CSV, header: userHeaders }, { path: PETS_CSV, header: petHeaders },
     { path: SUSPICIOUS_CSV, header: suspiciousHeaders }, { path: INTERACTIONS_CSV, header: interactionHeaders },
     { path: MESSAGES_CSV, header: messageHeaders }, { path: CHAT_CSV, header: chatHeaders }
 ].forEach(file => {
-    if (!fs.existsSync(file.path)) {
-        createCsvWriter(file).writeRecords([]);
-    }
+    if (!fs.existsSync(file.path)) createCsvWriter(file).writeRecords([]);
 });
 
 let breedMap = {};
@@ -80,7 +75,7 @@ async function loadBreeds() {
         const cats = await mlPipeline.readCsv(path.join(DB_DIR, 'updated_cat_breeds.csv'));
         cats.forEach(c => { if(c.breed_id) breedMap[c.breed_id] = c.Name; });
         console.log("Global breed dictionary loaded.");
-    } catch(e) { console.error("Failed to load breeds (ignoring if files not present)"); }
+    } catch(e) {}
 }
 loadBreeds();
 
@@ -90,21 +85,15 @@ let globalAprioriRules = [];
 const runBackgroundTasks = async () => {
     try {
         await mlPipeline.trainBackgroundModels();
-        console.log("Background ML models (K-Means, Random Forest) retrained.");
-        
+        console.log("Background Pipeline (5D K-Means, AGNES Archetypes, Jaccard Synergy, RF) trained.");
         globalAprioriRules = await mlPipeline.runApriori();
-        console.log("Global Apriori rules updated.");
-    } catch (err) {
-        console.error("Background task error:", err);
-    }
+        console.log("Apriori rule sets injected into active recommendation engine.");
+    } catch (err) { console.error("Background task error:", err); }
 };
 
-// Run every 5 minutes
-setInterval(runBackgroundTasks, 300000); 
-// Initial run on startup
+setInterval(runBackgroundTasks, 300000); // 5 minutes
 setTimeout(runBackgroundTasks, 2000);
 
-// Multer setup
 const upload = multer({
     storage: multer.diskStorage({
         destination: (req, file, cb) => cb(null, 'uploads/'),
@@ -117,23 +106,17 @@ const upload = multer({
 app.post('/api/signup', async (req, res) => {
     try {
         const { username, email, phone, location, password } = req.body;
-        if (!username || !email || !phone || !location || !password) {
-            return res.status(400).json({ error: 'All fields are mandatory' });
-        }
+        if (!username || !email || !phone || !location || !password) return res.status(400).json({ error: 'All fields are mandatory' });
 
         const users = await mlPipeline.readCsv(USERS_CSV);
-        if (users.find(u => u.username === username)) {
-            return res.status(400).json({ error: 'Username already exists' });
-        }
+        if (users.find(u => u.username === username)) return res.status(400).json({ error: 'Username already exists' });
 
         const hashedPassword = await bcrypt.hash(password, 10);
         users.push({ username, email, phone, location, password: hashedPassword, fullName: '', photoPath: '' });
         await mlPipeline.writeCsv(USERS_CSV, userHeaders, users);
         
         res.status(201).json({ success: true, message: 'User created' });
-    } catch (err) {
-        res.status(500).json({ error: 'Server error' });
-    }
+    } catch (err) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.post('/api/login', async (req, res) => {
@@ -142,30 +125,20 @@ app.post('/api/login', async (req, res) => {
         const users = await mlPipeline.readCsv(USERS_CSV);
         const user = users.find(u => u.username === username);
 
-        if (!user || !(await bcrypt.compare(password, user.password))) {
-            return res.status(401).json({ error: 'Invalid username or password' });
-        }
+        if (!user || !(await bcrypt.compare(password, user.password))) return res.status(401).json({ error: 'Invalid username or password' });
 
         const pets = await mlPipeline.readCsv(PETS_CSV);
         let pet = pets.find(p => p.username === username) || null;
         if (pet) pet = { ...pet, breed: breedMap[pet.breed] || pet.breed };
         
-        res.json({ 
-            success: true, 
-            message: 'Login successful', 
-            user: { username: user.username, email: user.email, phone: user.phone, location: user.location, fullName: user.fullName, photoPath: user.photoPath }, 
-            pet 
-        });
-    } catch (err) {
-        res.status(500).json({ error: 'Server error' });
-    }
+        res.json({ success: true, message: 'Login successful', user: { username: user.username, email: user.email, phone: user.phone, location: user.location, fullName: user.fullName, photoPath: user.photoPath }, pet });
+    } catch (err) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.put('/api/user/:username', async (req, res) => {
     try {
         const username = req.params.username;
         const { phone, location, fullName, photoPath } = req.body;
-        
         let users = await mlPipeline.readCsv(USERS_CSV);
         let userIndex = users.findIndex(u => u.username === username);
 
@@ -178,40 +151,26 @@ app.put('/api/user/:username', async (req, res) => {
 
         await mlPipeline.writeCsv(USERS_CSV, userHeaders, users);
         res.json({ success: true, message: 'Profile updated' });
-    } catch (err) {
-        res.status(500).json({ error: 'Server error' });
-    }
+    } catch (err) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.post('/api/pet', async (req, res) => {
     try {
         const { username, petName, type, gender, birthYear, vaccination, breed, length, weight, color, personality, photoPath } = req.body;
-        
         if (!username) return res.status(400).json({ error: 'Username is required' });
 
         let pets = await mlPipeline.readCsv(PETS_CSV);
         let petIndex = pets.findIndex(p => p.username === username);
 
         const newPetData = mlPipeline.preprocess({
-            username,
-            petName: petName || '',
-            type: type || '',
-            gender: gender || '',
-            birthYear: birthYear || '',
-            vaccination: vaccination || '',
-            breed: breed || '',
-            length: length || '',
-            weight: weight || '',
-            color: color || '',
-            personality: personality || '',
-            photoPath: photoPath || ''
+            username, petName: petName || '', type: type || '', gender: gender || '',
+            birthYear: birthYear || '', vaccination: vaccination || '', breed: breed || '',
+            length: length || '', weight: weight || '', color: color || '',
+            personality: personality || '', photoPath: photoPath || ''
         });
 
-        // Pass the properly structured and typed data to the gatekeeper
         const isAnomaly = mlPipeline.gatekeeper(newPetData);
         newPetData.isFlagged = isAnomaly ? 'true' : 'false';
-        
-        // Fast O(k) cluster assignment
         newPetData.clusterGroup = isAnomaly ? '' : mlPipeline.assignToCluster(newPetData);
 
         if (petIndex > -1) pets[petIndex] = { ...pets[petIndex], ...newPetData };
@@ -222,10 +181,7 @@ app.post('/api/pet', async (req, res) => {
         if (isAnomaly) return res.json({ success: true, flagged: true, message: 'Account creation pending review' });
         res.json({ success: true, message: 'Pet profile saved' });
 
-    } catch (err) {
-        console.error("Pet Profile Error:", err);
-        res.status(500).json({ error: 'Server error while saving pet profile' });
-    }
+    } catch (err) { console.error("Pet Profile Error:", err); res.status(500).json({ error: 'Server error while saving pet profile' }); }
 });
 
 app.post('/api/upload', upload.single('media'), (req, res) => {
@@ -236,19 +192,14 @@ app.post('/api/upload', upload.single('media'), (req, res) => {
 app.get('/api/breeds', async (req, res) => {
     try {
         const type = req.query.type;
-        // Construct the full absolute path so it resolves anywhere
         const file = type === 'dog' 
             ? path.join(__dirname, 'DB', 'updated_dog_breeds.csv') 
             : path.join(__dirname, 'DB', 'updated_cat_breeds.csv');
             
         const breeds = await mlPipeline.readCsv(file);
         const breedData = breeds.map(b => ({ id: b.breed_id, name: b.Name })).filter(b => b.name && b.id);
-        
         res.json({ success: true, breeds: breedData });
-    } catch (err) {
-        console.error("Breed Fetch Error:", err);
-        res.status(500).json({ error: 'Server error while fetching breeds' });
-    }
+    } catch (err) { res.status(500).json({ error: 'Server error while fetching breeds' }); }
 });
 
 // Admin Route Helper
@@ -265,21 +216,16 @@ app.get('/api/admin/dashboard', async (req, res) => {
         const pets = await mlPipeline.readCsv(PETS_CSV);
         const flaggedUsers = pets.filter(p => p.isFlagged === 'true').map(p => ({...p, breed: breedMap[p.breed] || p.breed}));
         const approvedUsers = pets.filter(p => p.isFlagged !== 'true').map(p => ({...p, breed: breedMap[p.breed] || p.breed}));
-        
         const interactions = await mlPipeline.readCsv(INTERACTIONS_CSV);
-        const agnesTree = await mlPipeline.getAgnesTree();
+        
+        // Instant O(1) lookup from the background cache
+        const agnesTree = mlPipeline.getAgnesTree();
         
         res.json({ 
-            success: true, 
-            suspicious: flaggedUsers, 
-            users: approvedUsers,
-            interactions: interactions,
-            agnes: sanitizeAgnes(agnesTree), 
-            apriori: globalAprioriRules 
+            success: true, suspicious: flaggedUsers, users: approvedUsers,
+            interactions: interactions, agnes: sanitizeAgnes(agnesTree), apriori: globalAprioriRules 
         });
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to load dashboard data' });
-    }
+    } catch (err) { res.status(500).json({ error: 'Failed to load dashboard data' }); }
 });
 
 app.post('/api/admin/accept', async (req, res) => {
@@ -293,9 +239,7 @@ app.post('/api/admin/accept', async (req, res) => {
             await mlPipeline.writeCsv(PETS_CSV, petHeaders, pets);
         }
         res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to accept user' });
-    }
+    } catch (err) { res.status(500).json({ error: 'Failed to accept user' }); }
 });
 
 app.post('/api/admin/refuse', async (req, res) => {
@@ -305,9 +249,7 @@ app.post('/api/admin/refuse', async (req, res) => {
         pets = pets.filter(p => p.username !== username);
         await mlPipeline.writeCsv(PETS_CSV, petHeaders, pets);
         res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to refuse user' });
-    }
+    } catch (err) { res.status(500).json({ error: 'Failed to refuse user' }); }
 });
 
 app.get('/api/playdates', async (req, res) => {
@@ -317,12 +259,8 @@ app.get('/api/playdates', async (req, res) => {
         
         const candidatesRaw = await mlPipeline.getPlaydatesFeed(username);
         const candidates = candidatesRaw.map(c => ({...c, breed: breedMap[c.breed] || c.breed}));
-        
         res.json({ success: true, candidates });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Failed to fetch playdates' });
-    }
+    } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to fetch playdates' }); }
 });
 
 app.post('/api/interactions', async (req, res) => {
@@ -341,9 +279,7 @@ app.post('/api/interactions', async (req, res) => {
             }
         }
         res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to record interaction' });
-    }
+    } catch (err) { res.status(500).json({ error: 'Failed to record interaction' }); }
 });
 
 app.post('/api/messages/accept', async (req, res) => {
@@ -356,9 +292,7 @@ app.post('/api/messages/accept', async (req, res) => {
             await mlPipeline.writeCsv(MESSAGES_CSV, messageHeaders, messages);
         }
         res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to accept message' });
-    }
+    } catch (err) { res.status(500).json({ error: 'Failed to accept message' }); }
 });
 
 app.get('/api/messages', async (req, res) => {
@@ -368,9 +302,7 @@ app.get('/api/messages', async (req, res) => {
         let messages = await mlPipeline.readCsv(MESSAGES_CSV);
         messages = messages.filter(m => m.toUser === username || m.fromUser === username);
         res.json({ success: true, messages });
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch messages' });
-    }
+    } catch (err) { res.status(500).json({ error: 'Failed to fetch messages' }); }
 });
 
 app.get('/api/chat', async (req, res) => {
@@ -380,9 +312,7 @@ app.get('/api/chat', async (req, res) => {
         let chats = await mlPipeline.readCsv(CHAT_CSV);
         chats = chats.filter(c => (c.fromUser === userA && c.toUser === userB) || (c.fromUser === userB && c.toUser === userA));
         res.json({ success: true, chats });
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch chat' });
-    }
+    } catch (err) { res.status(500).json({ error: 'Failed to fetch chat' }); }
 });
 
 app.post('/api/chat', async (req, res) => {
@@ -392,9 +322,7 @@ app.post('/api/chat', async (req, res) => {
         chats.push({ fromUser, toUser, message, timestamp: Date.now() });
         await mlPipeline.writeCsv(CHAT_CSV, chatHeaders, chats);
         res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to send message' });
-    }
+    } catch (err) { res.status(500).json({ error: 'Failed to send message' }); }
 });
 
 app.listen(PORT, () => {
