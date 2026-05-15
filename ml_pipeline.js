@@ -8,18 +8,17 @@ const hclust = require('ml-hclust');
 const { RandomForestClassifier } = require('ml-random-forest');
 const { Apriori } = require('node-apriori');
 
-
 const DB_DIR = path.join(__dirname, 'DB');
-const MODELS_DIR = path.join(__dirname, 'models'); 
-const STATE_FILE = path.join(MODELS_DIR, 'ml_pipeline_state.json'); 
-
-// Ensure models directory exists
-if (!fs.existsSync(MODELS_DIR)) {
-    fs.mkdirSync(MODELS_DIR, { recursive: true });
-}
+const MODELS_DIR = path.join(__dirname, 'models');
+const STATE_FILE = path.join(MODELS_DIR, 'ml_pipeline_state.json');
+const STATE_FILE_TEMP = path.join(MODELS_DIR, 'ml_pipeline_state.tmp.json');
 
 const PETS_CSV = path.join(DB_DIR, 'individual_pets.csv');
 const INTERACTIONS_CSV = path.join(DB_DIR, 'interactions.csv');
+
+if (!fs.existsSync(MODELS_DIR)) {
+    fs.mkdirSync(MODELS_DIR, { recursive: true });
+}
 
 // --- HYPERPARAMETERS & CONFIGURATION ---
 const ML_CONFIG = {
@@ -42,11 +41,13 @@ let globalScalingParams = { means: [0,0,0], stdDevs: [1,1,1] };
 let globalOptimalK = 3; 
 let globalClusterStats = {}; 
 let globalAgnesMap = {}; 
-let globalAgnesTreeCache = null; // Restored Cache Variable
+let globalAgnesTreeCache = null; 
 let globalUserSimMatrix = {}; 
 let globalItemLikers = {}; 
 let globalItemSkippers = {}; 
 let globalAprioriRules = {}; 
+
+let lastTrainingState = { petsCount: 0, interactionsCount: 0 };
 
 // --- LOCAL PERSISTENCE ---
 async function loadStateFromLocal() {
@@ -63,8 +64,8 @@ async function loadStateFromLocal() {
             
             if (state.aprioriRules) {
                 globalAprioriRules = {};
-                state.aprioriRules.forEach(([breed, rulesArr]) => {
-                    globalAprioriRules[breed] = new Map(rulesArr);
+                state.aprioriRules.forEach(([key, rulesArr]) => {
+                    globalAprioriRules[key] = new Map(rulesArr);
                 });
             }
             if (state.rfModelJSON) {
@@ -79,7 +80,7 @@ async function loadStateFromLocal() {
 
 async function syncToLocal() {
     try {
-        const aprioriSerialized = Object.entries(globalAprioriRules).map(([breed, map]) => [breed, Array.from(map.entries())]);
+        const aprioriSerialized = Object.entries(globalAprioriRules).map(([key, map]) => [key, Array.from(map.entries())]);
         const state = {
             centroids: globalCentroids,
             scalingParams: globalScalingParams,
@@ -90,14 +91,15 @@ async function syncToLocal() {
             rfModelJSON: globalRfModel ? globalRfModel.toJSON() : null
         };
         
-        // Write atomically to prevent corruption if the server crashes mid-save
-        fs.writeFileSync(STATE_FILE, JSON.stringify(state), 'utf8');
+        // Write atomically using a temp file and rename to prevent corruption on crash
+        fs.writeFileSync(STATE_FILE_TEMP, JSON.stringify(state), 'utf8');
+        fs.renameSync(STATE_FILE_TEMP, STATE_FILE);
     } catch (err) {
         console.error("Local sync failed:", err.message);
     }
 }
 
-// --- IO HELPERS ---
+// --- IO HELPERS & MATH UTILS ---
 const readCsv = (filePath) => {
     return new Promise((resolve) => {
         const results = [];
@@ -108,7 +110,15 @@ const readCsv = (filePath) => {
 };
 const writeCsv = (filePath, headers, records) => createCsvWriter({ path: filePath, header: headers }).writeRecords(records);
 
-// --- PREPROCESSING (Restored from Regression) ---
+function fisherYatesShuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+// --- PREPROCESSING ---
 function preprocess(petData) {
     const processed = { ...petData };
     processed.birthYear = parseInt(processed.birthYear) || 2020;
@@ -144,8 +154,7 @@ function getMahalanobisDistanceSq(scaledPoint, stats) {
 
 function findNearestCluster(scaledPhys) {
     if (!globalCentroids) return { clusterIdx: 0, distanceSq: 0 };
-    let minDistance = Infinity;
-    let closestCluster = 0;
+    let minDistance = Infinity, closestCluster = 0;
 
     globalCentroids.forEach((centroid, index) => {
         const stats = globalClusterStats[index];
@@ -156,11 +165,7 @@ function findNearestCluster(scaledPhys) {
             const coords = Array.isArray(centroid) ? centroid : centroid.centroid;
             dist = coords.reduce((sum, val, d) => sum + Math.pow(val - scaledPhys[d], 2), 0);
         }
-        
-        if (dist < minDistance) { 
-            minDistance = dist; 
-            closestCluster = index; 
-        }
+        if (dist < minDistance) { minDistance = dist; closestCluster = index; }
     });
     return { clusterIdx: closestCluster, distanceSq: minDistance };
 }
@@ -177,9 +182,7 @@ function gatekeeper(rawPetData) {
         const { clusterIdx, distanceSq } = findNearestCluster(scaledPhys);
         
         const stats = globalClusterStats[clusterIdx];
-        if (stats && stats.invCovMatrix && distanceSq > ML_CONFIG.chiSquareThreshold) {
-            return true; 
-        }
+        if (stats && stats.invCovMatrix && distanceSq > ML_CONFIG.chiSquareThreshold) return true; 
     } else if (age > 25 || parseFloat(rawPetData.weight) > 150) {
         return true; 
     }
@@ -243,6 +246,13 @@ async function trainBackgroundModels() {
     const approvedPets = pets.filter(p => p.isFlagged !== 'true');
     const interactions = await readCsv(INTERACTIONS_CSV);
 
+    if (approvedPets.length === lastTrainingState.petsCount && interactions.length === lastTrainingState.interactionsCount) {
+        return; 
+    }
+    
+    lastTrainingState.petsCount = approvedPets.length;
+    lastTrainingState.interactionsCount = interactions.length;
+
     if (approvedPets.length >= 3) {
         // 1. K-Means
         const rawPhysFeatures = approvedPets.map(extractPhysical);
@@ -273,13 +283,23 @@ async function trainBackgroundModels() {
                     for(let i=0; i<3; i++) for(let j=0; j<3; j++) covMatrix[i][j] += (p[i] - meanVector[i]) * (p[j] - meanVector[j]);
                 });
                 for(let i=0; i<3; i++) for(let j=0; j<3; j++) covMatrix[i][j] /= (pts.length - 1);
-                
                 globalClusterStats[k] = { meanVector, invCovMatrix: invert3x3Covariance(covMatrix) };
             }
         }
 
-        // 2. AGNES (Cache restored)
-        const tree = hclust.agnes(approvedPets.map(extractBehavioral), { method: 'complete' });
+        // 2. AGNES
+        const behavioralFeatures = approvedPets.map(extractBehavioral);
+        const distMatrix = [];
+        for(let i=0; i<behavioralFeatures.length; i++) {
+            distMatrix[i] = [];
+            for(let j=0; j<behavioralFeatures.length; j++) {
+                let diff = 0;
+                for(let d=0; d<5; d++) if(behavioralFeatures[i][d] !== behavioralFeatures[j][d]) diff++;
+                distMatrix[i][j] = diff;
+            }
+        }
+
+        const tree = hclust.agnes(distMatrix, { method: 'complete', isDistanceMatrix: true });
         globalAgnesTreeCache = tree; 
 
         let maxGap = 0, bestCutHeight = tree.height;
@@ -298,27 +318,30 @@ async function trainBackgroundModels() {
             let target = nodes.splice(splitIndex, 1)[0];
             nodes.push(...target.children);
         }
+        
         const extractLeaves = (node, arr) => {
             if (node.isLeaf) arr.push(node.index);
             else node.children.forEach(c => extractLeaves(c, arr));
             return arr;
         };
+        
+        const petUsernames = approvedPets.map(p => p.username);
         globalAgnesMap = {};
         nodes.forEach((clusterNode, archetypeId) => {
             extractLeaves(clusterNode, []).forEach(idx => {
-                if (approvedPets[idx]) globalAgnesMap[approvedPets[idx].username] = archetypeId;
+                const uname = petUsernames[idx];
+                if (uname) globalAgnesMap[uname] = archetypeId;
             });
         });
     }
 
-    // 3. Jaccard CF (True Multiset Intersection)
+    // 3. Jaccard CF (O(U * K) Optimized via Inverted Index)
     const userLikes = {}, userSkips = {};
     const itemLikers = {}, itemSkippers = {}; 
     
     interactions.forEach(i => {
         if (!userLikes[i.username]) userLikes[i.username] = new Set();
         if (!userSkips[i.username]) userSkips[i.username] = new Set();
-
         if (i.action === 'like') {
             userLikes[i.username].add(i.targetUsername);
             if (!itemLikers[i.targetUsername]) itemLikers[i.targetUsername] = new Set();
@@ -330,31 +353,41 @@ async function trainBackgroundModels() {
         }
     });
     
-    globalItemLikers = itemLikers; globalItemSkippers = itemSkippers;
+    globalItemLikers = itemLikers; 
+    globalItemSkippers = itemSkippers;
+    
     const users = Array.from(new Set([...Object.keys(userLikes), ...Object.keys(userSkips)]));
     const newSimMatrix = {};
+    for (const u of users) newSimMatrix[u] = {};
     
     for (let i = 0; i < users.length; i++) {
-        newSimMatrix[users[i]] = {};
-        for (let j = i + 1; j < users.length; j++) {
-            const u1 = users[i], u2 = users[j];
-            
-            // True Set Union to prevent double counting
-            const u1Items = new Set([...(userLikes[u1] || []), ...(userSkips[u1] || [])]);
-            const u2Items = new Set([...(userLikes[u2] || []), ...(userSkips[u2] || [])]);
-            
-            let intersect = 0;
-            for (let item of u1Items) if (u2Items.has(item)) intersect++;
-            
-            const union = u1Items.size + u2Items.size - intersect;
-            const sim = union === 0 ? 0 : intersect / union;
-            
-            if (sim > ML_CONFIG.jaccardMinThreshold) { 
-                newSimMatrix[u1][u2] = sim;
-                if (!newSimMatrix[u2]) newSimMatrix[u2] = {};
-                newSimMatrix[u2][u1] = sim;
+        const u1 = users[i];
+        const u1Items = new Set([...(userLikes[u1] || []), ...(userSkips[u1] || [])]);
+        
+        // Find users who share at least one liked/skipped pet
+        const candidateUsers = new Set();
+        u1Items.forEach(item => {
+            if (itemLikers[item]) itemLikers[item].forEach(u => candidateUsers.add(u));
+            if (itemSkippers[item]) itemSkippers[item].forEach(u => candidateUsers.add(u));
+        });
+        candidateUsers.delete(u1);
+
+        candidateUsers.forEach(u2 => {
+            if (u1 < u2) { // Compute only once per undirected edge
+                const u2Items = new Set([...(userLikes[u2] || []), ...(userSkips[u2] || [])]);
+                
+                let intersect = 0;
+                for (let item of u1Items) if (u2Items.has(item)) intersect++;
+                
+                const union = u1Items.size + u2Items.size - intersect;
+                const sim = union === 0 ? 0 : intersect / union;
+                
+                if (sim > ML_CONFIG.jaccardMinThreshold) { 
+                    newSimMatrix[u1][u2] = sim;
+                    newSimMatrix[u2][u1] = sim;
+                }
             }
-        }
+        });
     }
     globalUserSimMatrix = newSimMatrix;
 
@@ -368,7 +401,15 @@ async function trainBackgroundModels() {
                 const f1 = standardizePhysical([extractPhysical(userPet)])[0];
                 const f2 = standardizePhysical([extractPhysical(targetPet)])[0];
                 const diffVector = f1.map((val, i) => Math.abs(val - f2[i]));
-                diffVector.push((userPet.breed && targetPet.breed && userPet.breed === targetPet.breed) ? 1 : 0); 
+                
+                const isSameBreed = (userPet.breed && targetPet.breed && userPet.breed === targetPet.breed) ? 1 : 0;
+                const beh1 = extractBehavioral(userPet);
+                const beh2 = extractBehavioral(targetPet);
+                
+                let behOverlap = 0;
+                for(let i=0; i<5; i++) if (beh1[i] === 1 && beh2[i] === 1) behOverlap++;
+                
+                diffVector.push(isSameBreed, behOverlap / 5.0); 
                 allData.push(diffVector);
                 allLabels.push(interaction.action === 'like' ? 1 : 0);
             }
@@ -379,7 +420,8 @@ async function trainBackgroundModels() {
         
         if (lIdx.length > 0 && sIdx.length > 0) {
             const minSize = Math.min(lIdx.length, sIdx.length);
-            const bIdx = [...lIdx.sort(() => 0.5 - Math.random()).slice(0, minSize), ...sIdx.sort(() => 0.5 - Math.random()).slice(0, minSize)].sort(() => 0.5 - Math.random()); 
+            let bIdx = [...fisherYatesShuffle(lIdx).slice(0, minSize), ...fisherYatesShuffle(sIdx).slice(0, minSize)];
+            bIdx = fisherYatesShuffle(bIdx);
             
             const bData = bIdx.map(i => allData[i]);
             const bLabels = bIdx.map(i => allLabels[i]);
@@ -394,15 +436,13 @@ async function trainBackgroundModels() {
                 const preds = tempModel.predict(bData.slice(split));
                 for(let i = 0; i < testLabels.length; i++) if (preds[i] === testLabels[i]) correct++;
 
-                if ((correct / testLabels.length) > 0.55) globalRfModel = tempModel;
+                if ((correct / testLabels.length) >= 0.70) globalRfModel = tempModel;
             }
         }
     }
-
-    syncToLocal();
 }
 
-// 5. APRIORI (Restored as Exported Isolated Function)
+// 5. APRIORI (Expansive Features & True Lift Denominators)
 async function runApriori() {
     const interactions = await readCsv(INTERACTIONS_CSV);
     const pets = await readCsv(PETS_CSV);
@@ -412,10 +452,25 @@ async function runApriori() {
     
     interactions.filter(i => i.action === 'like').forEach(i => {
         const targetPet = pets.find(p => p.username === i.targetUsername);
-        if (targetPet && targetPet.breed) {
+        if (targetPet) {
             const sessionId = `${i.username}_${Math.floor(i.timestamp / ML_CONFIG.sessionWindowMs)}`;
             if (!sessionLikes[sessionId]) sessionLikes[sessionId] = new Set();
-            sessionLikes[sessionId].add(`breed_${targetPet.breed}`);
+            
+            // Expanded Apriori Domain Features
+            if (targetPet.breed) sessionLikes[sessionId].add(`breed_${targetPet.breed}`);
+            if (targetPet.type) sessionLikes[sessionId].add(`type_${targetPet.type.toLowerCase()}`);
+            if (targetPet.gender) sessionLikes[sessionId].add(`gender_${targetPet.gender.toLowerCase()}`);
+            
+            const age = new Date().getFullYear() - (parseInt(targetPet.birthYear) || 2020);
+            const ageGroup = age < 2 ? 'young' : age < 8 ? 'adult' : 'senior';
+            sessionLikes[sessionId].add(`age_${ageGroup}`);
+            
+            const traits = (targetPet.personality || '').toLowerCase().split(',').map(t => t.trim());
+            traits.forEach(t => {
+                if (['active', 'friendly', 'calm', 'touchy', 'sleepy'].includes(t)) {
+                    sessionLikes[sessionId].add(`trait_${t}`);
+                }
+            });
         }
     });
 
@@ -431,23 +486,27 @@ async function runApriori() {
             const apriori = new Apriori(ML_CONFIG.aprioriMinSupport); 
             apriori.exec(transactions).then(result => {
                 const newRules = {};
+                
                 result.itemsets.forEach(itemset => {
+                    // Extract exact pair rules ensuring valid Lift Denominators
                     if (itemset.items.length === 2) {
-                        const breedA = itemset.items[0], breedB = itemset.items[1];
-                        const supportA = itemTxFrequencies[breedA] / totalTx;
-                        const supportB = itemTxFrequencies[breedB] / totalTx;
+                        const itemA = itemset.items[0];
+                        const itemB = itemset.items[1];
+                        
+                        const supportA = itemTxFrequencies[itemA] / totalTx;
+                        const supportB = itemTxFrequencies[itemB] / totalTx;
                         const lift = itemset.support / (supportA * supportB);
                         
                         if (lift > ML_CONFIG.aprioriMinLift) {
-                            if (!newRules[breedA]) newRules[breedA] = new Map();
-                            if (!newRules[breedB]) newRules[breedB] = new Map();
-                            newRules[breedA].set(breedB, lift);
-                            newRules[breedB].set(breedA, lift);
+                            if (!newRules[itemA]) newRules[itemA] = new Map();
+                            if (!newRules[itemB]) newRules[itemB] = new Map();
+                            newRules[itemA].set(itemB, lift);
+                            newRules[itemB].set(itemA, lift);
                         }
                     }
                 });
                 globalAprioriRules = newRules;
-                syncToLocal();
+                syncToLocal(); 
                 resolve(result.itemsets);
             });
         });
@@ -481,13 +540,30 @@ async function getPlaydatesFeed(username) {
     });
     const preferredArchetype = Object.keys(archetypeCounts).sort((a, b) => archetypeCounts[b] - archetypeCounts[a])[0];
 
-    const userBreedAssociations = new Map(); 
+    const activeAssociations = new Map(); 
     userLikes.forEach(like => {
         const targetPet = pets.find(p => p.username === like.targetUsername);
-        if (targetPet && targetPet.breed && globalAprioriRules[`breed_${targetPet.breed}`]) {
-            globalAprioriRules[`breed_${targetPet.breed}`].forEach((liftVal, associatedBreed) => {
-                const currentVal = userBreedAssociations.get(associatedBreed) || 0;
-                if (liftVal > currentVal) userBreedAssociations.set(associatedBreed, liftVal);
+        if (targetPet) {
+            const petProps = [];
+            if (targetPet.breed) petProps.push(`breed_${targetPet.breed}`);
+            if (targetPet.type) petProps.push(`type_${targetPet.type.toLowerCase()}`);
+            if (targetPet.gender) petProps.push(`gender_${targetPet.gender.toLowerCase()}`);
+            
+            const targetAge = new Date().getFullYear() - (parseInt(targetPet.birthYear) || 2020);
+            petProps.push(`age_${targetAge < 2 ? 'young' : targetAge < 8 ? 'adult' : 'senior'}`);
+            
+            (targetPet.personality || '').toLowerCase().split(',').forEach(t => {
+                const trait = t.trim();
+                if (['active', 'friendly', 'calm', 'touchy', 'sleepy'].includes(trait)) petProps.push(`trait_${trait}`);
+            });
+
+            petProps.forEach(prop => {
+                if (globalAprioriRules[prop]) {
+                    globalAprioriRules[prop].forEach((liftVal, assocItem) => {
+                        const currentVal = activeAssociations.get(assocItem) || 0;
+                        if (liftVal > currentVal) activeAssociations.set(assocItem, liftVal);
+                    });
+                }
             });
         }
     });
@@ -522,13 +598,30 @@ async function getPlaydatesFeed(username) {
             let overlaps = 0;
             const cBeh = extractBehavioral(c);
             for(let i=0; i<5; i++) if (cBeh[i] === 1 && targetBeh[i] === 1) overlaps++;
-            behScore = overlaps / 5;
+            behScore = overlaps / 5.0;
         }
 
         let aprioriScore = 0.0;
-        if (c.breed && userBreedAssociations.has(`breed_${c.breed}`)) {
-            aprioriScore = Math.min((userBreedAssociations.get(`breed_${c.breed}`) - 1.0) / 2.0, 1.0); 
-        }
+        const cProps = [];
+        if (c.breed) cProps.push(`breed_${c.breed}`);
+        if (c.type) cProps.push(`type_${c.type.toLowerCase()}`);
+        if (c.gender) cProps.push(`gender_${c.gender.toLowerCase()}`);
+        
+        const cAge = new Date().getFullYear() - (parseInt(c.birthYear) || 2020);
+        cProps.push(`age_${cAge < 2 ? 'young' : cAge < 8 ? 'adult' : 'senior'}`);
+        
+        (c.personality || '').toLowerCase().split(',').forEach(t => {
+            const trait = t.trim();
+            if (['active', 'friendly', 'calm', 'touchy', 'sleepy'].includes(trait)) cProps.push(`trait_${trait}`);
+        });
+
+        cProps.forEach(prop => {
+            if (activeAssociations.has(prop)) {
+                const lift = activeAssociations.get(prop);
+                const score = Math.min((lift - 1.0) / 2.0, 1.0); 
+                if (score > aprioriScore) aprioriScore = score;
+            }
+        });
 
         c.fusionScore = (physScore * ML_CONFIG.fusionWeights.physical) + 
                         (cfScore * ML_CONFIG.fusionWeights.cf) + 
@@ -539,11 +632,16 @@ async function getPlaydatesFeed(username) {
     candidates.sort((a, b) => b.fusionScore - a.fusionScore); 
     candidates = candidates.slice(0, 50); 
 
-    // CONTINUOUS PROBABILISTIC RF MULTIPLIER (With Defensive Fallback)
     if (globalRfModel) {
         const inferenceData = candidates.map(c => {
             const diffVector = targetPhys.map((val, idx) => Math.abs(val - c._tempPhys[idx]));
-            diffVector.push((currentUser.breed && c.breed && currentUser.breed === c.breed) ? 1 : 0);
+            const isSameBreed = (currentUser.breed && c.breed && currentUser.breed === c.breed) ? 1 : 0;
+            
+            const cBeh = extractBehavioral(c);
+            let behOverlap = 0;
+            for(let i=0; i<5; i++) if (cBeh[i] === 1 && targetBeh[i] === 1) behOverlap++;
+            
+            diffVector.push(isSameBreed, behOverlap / 5.0);
             return diffVector;
         });
         
@@ -556,7 +654,7 @@ async function getPlaydatesFeed(username) {
                 globalRfModel.estimators.forEach(tree => { if (tree.predict([inferenceData[i]])[0] === 1) positiveVotes++; });
                 prob = positiveVotes / globalRfModel.estimators.length;
             } else {
-                prob = basePredictions[i]; // Fallback if internal API changes
+                prob = basePredictions[i]; 
             }
             
             const multiplier = 0.8 + (prob * 0.4); 

@@ -84,11 +84,10 @@ const runBackgroundTasks = async () => {
     try {
         await mlPipeline.trainBackgroundModels();
         await mlPipeline.runApriori(); 
-        console.log("Background Pipeline (10D, Mahalanobis, Probabilistic RF, True Apriori) trained.");
+        console.log("Background Pipeline (Fisher-Yates RF, Local State, Hamming AGNES) trained successfully.");
     } catch (err) { console.error("Background task error:", err); }
 };
 
-// Initialize Local State on Boot, then start the scheduler
 mlPipeline.loadStateFromLocal().then(() => {
     setInterval(runBackgroundTasks, 300000); 
     setTimeout(runBackgroundTasks, 2000);
