@@ -85,13 +85,13 @@ let globalAprioriRules = [];
 const runBackgroundTasks = async () => {
     try {
         await mlPipeline.trainBackgroundModels();
-        console.log("Background Pipeline (5D K-Means, AGNES Archetypes, Jaccard Synergy, RF) trained.");
+        console.log("Background Pipeline (5D K-Means, AGNES Archetypes, Jaccard Synergy, 7-Rule RF) trained.");
         globalAprioriRules = await mlPipeline.runApriori();
         console.log("Apriori rule sets injected into active recommendation engine.");
     } catch (err) { console.error("Background task error:", err); }
 };
 
-setInterval(runBackgroundTasks, 300000); // 5 minutes
+setInterval(runBackgroundTasks, 300000); 
 setTimeout(runBackgroundTasks, 2000);
 
 const upload = multer({
@@ -218,7 +218,6 @@ app.get('/api/admin/dashboard', async (req, res) => {
         const approvedUsers = pets.filter(p => p.isFlagged !== 'true').map(p => ({...p, breed: breedMap[p.breed] || p.breed}));
         const interactions = await mlPipeline.readCsv(INTERACTIONS_CSV);
         
-        // Instant O(1) lookup from the background cache
         const agnesTree = mlPipeline.getAgnesTree();
         
         res.json({ 

@@ -15,8 +15,6 @@ const INTERACTIONS_CSV = path.join(DB_DIR, 'interactions.csv');
 // --- HYPERPARAMETERS & CONFIGURATION ---
 const ML_CONFIG = {
     // Distance Weights: [Weight, Length, Age, isDog, isMale]
-    // isDog is weighted at 4.0 to guarantee species mismatch penalties (>4.0) 
-    // mathematically overpower maximum possible physical similarity (0.5+0.5+0.5 = 1.5).
     featureWeights: [0.5, 0.5, 0.5, 4.0, 1.5],
     
     // Engine Boost Multipliers
@@ -26,7 +24,11 @@ const ML_CONFIG = {
     
     // Background Mining Thresholds
     jaccardMinThreshold: 0.1,
-    aprioriSupportThreshold: 0.10
+    aprioriSupportThreshold: 0.10,
+
+    // Random Forest Settings
+    rfMaxFeatures: 3,
+    rfEstimators: 25
 };
 
 // --- GLOBAL STATE & MODELS ---
@@ -209,7 +211,7 @@ async function trainBackgroundModels() {
     }
     globalUserSimMatrix = newSimMatrix;
 
-    // 4. Random Forest
+    // 4. Random Forest (Now utilizing Categorical Breed & explicit Age Rules)
     if (interactions.length >= 10 && approvedPets.length > 0) {
         const trainingData = [];
         const trainingLabels = []; 
@@ -221,7 +223,15 @@ async function trainBackgroundModels() {
             if (userPet && targetPet) {
                 const f1 = normalizeFeatures(extractFeatures([userPet]))[0];
                 const f2 = normalizeFeatures(extractFeatures([targetPet]))[0];
+                
+                // Base 5D Euclidean Difference
                 const diffVector = f1.map((val, i) => Math.abs(val - f2[i]));
+                
+                // Append explicit categorical Rules for the Decision Trees
+                const isSameBreed = (userPet.breed && targetPet.breed && userPet.breed === targetPet.breed) ? 1 : 0;
+                const ageDiff = Math.abs((parseInt(userPet.birthYear) || 2020) - (parseInt(targetPet.birthYear) || 2020));
+                
+                diffVector.push(isSameBreed, ageDiff); // Vector size is now 7
                 
                 trainingData.push(diffVector);
                 trainingLabels.push(interaction.action === 'like' ? 1 : 0);
@@ -230,7 +240,12 @@ async function trainBackgroundModels() {
 
         const uniqueLabels = new Set(trainingLabels);
         if (trainingData.length > 0 && uniqueLabels.size > 1) {
-            const options = { seed: 3, maxFeatures: 3, replacement: true, nEstimators: 25 };
+            const options = { 
+                seed: 3, 
+                maxFeatures: ML_CONFIG.rfMaxFeatures, 
+                replacement: true, 
+                nEstimators: ML_CONFIG.rfEstimators 
+            };
             globalRfModel = new RandomForestClassifier(options);
             globalRfModel.train(trainingData, trainingLabels);
         }
@@ -300,11 +315,24 @@ async function getPlaydatesFeed(username) {
     const interactions = await readCsv(INTERACTIONS_CSV);
     const userLikes = interactions.filter(i => i.username === username && i.action === 'like');
     
+    // 1. Seen Filter
     const pastInteractions = new Set(interactions.filter(i => i.username === username).map(i => i.targetUsername));
     candidates = candidates.filter(c => !pastInteractions.has(c.username));
+    
+    // 2. K-Means Cluster Partitioning (Vector Search Optimization)
+    // Limits the O(N) KNN search space to the user's localized node.
+    const userCluster = currentUser.clusterGroup;
+    if (userCluster !== undefined && userCluster !== '') {
+        const inClusterCandidates = candidates.filter(c => String(c.clusterGroup) === String(userCluster));
+        // Fallback: Only restrict if the localized cluster actually contains enough potential matches
+        if (inClusterCandidates.length >= 5) {
+            candidates = inClusterCandidates;
+        }
+    }
+
     if (candidates.length === 0) return [];
 
-    // AGNES Archetype
+    // AGNES Archetype Processing
     const archetypeCounts = {};
     userLikes.forEach(like => {
         const archId = globalAgnesMap[like.targetUsername];
@@ -331,7 +359,7 @@ async function getPlaydatesFeed(username) {
     candidates.forEach((c, i) => {
         c.scaledFeatures = scaledData[i]; 
         
-        // Base 5D KNN Distance (Hyperparameter Configured)
+        // Base 5D KNN Distance
         let distance = Math.sqrt(c.scaledFeatures.reduce((sum, val, idx) => {
             return sum + (ML_CONFIG.featureWeights[idx] * Math.pow(val - targetScaled[idx], 2));
         }, 0));
@@ -364,12 +392,19 @@ async function getPlaydatesFeed(username) {
     candidates.sort((a, b) => a.hybridDistance - b.hybridDistance);
     candidates = candidates.slice(0, 50); 
 
-    // Random Forest Inference
+    // Random Forest Inference (Now mapping 7 Features including rules)
     if (globalRfModel) {
         const inferenceData = candidates.map(c => {
             const f1 = targetScaled;
             const f2 = c.scaledFeatures; 
-            return f1.map((val, idx) => Math.abs(val - f2[idx]));
+            const diffVector = f1.map((val, idx) => Math.abs(val - f2[idx]));
+            
+            // Re-apply the explicit categorical rules for the prediction vector
+            const isSameBreed = (currentUser.breed && c.breed && currentUser.breed === c.breed) ? 1 : 0;
+            const ageDiff = Math.abs((parseInt(currentUser.birthYear) || 2020) - (parseInt(c.birthYear) || 2020));
+            
+            diffVector.push(isSameBreed, ageDiff);
+            return diffVector;
         });
         
         const predictions = globalRfModel.predict(inferenceData);
