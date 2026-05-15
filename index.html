@@ -1164,7 +1164,7 @@
            datalist.innerHTML = '';
            availableBreeds.forEach(b => {
              const option = document.createElement('option');
-             option.value = b;
+             option.value = b.name;
              datalist.appendChild(option);
            });
         }
@@ -1360,9 +1360,15 @@
         alert("All fields are mandatory");
         return;
       }
-      if (availableBreeds.length > 0 && !availableBreeds.includes(breed)) {
-        alert("Please select a valid breed from the auto-complete list.");
-        return;
+      if (availableBreeds.length > 0) {
+        const matchedBreed = availableBreeds.find(b => b.name.toLowerCase() === breed.toLowerCase());
+        if (!matchedBreed) {
+          alert("Please select a valid breed from the auto-complete list.");
+          return;
+        }
+        var breedIdToSend = matchedBreed.id;
+      } else {
+        var breedIdToSend = breed; // Fallback
       }
       
       if (!petImageFile && (!currentPet || !currentPet.photoPath)) {
@@ -1377,7 +1383,7 @@
         gender: isFemale ? 'female' : 'male',
         birthYear,
         vaccination,
-        breed,
+        breed: breedIdToSend,
         length,
         weight,
         color,

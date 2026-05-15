@@ -1,8 +1,8 @@
 username,petName,type,gender,birthYear,vaccination,breed,length,weight,color,personality,photoPath,isFlagged,clusterGroup
-wadood,botatto,cat,female,2017,none,street cat,14,25,gold,"touchy,friendly,sleepy,calm",/uploads/1778776255354.png,,
-user1,reven,cat,female,2017,none,street cat,14,25,black,"active,touchy",/uploads/1778777000796.png,,
-the_guy,botatto,cat,female,2017,1 1 1,street cat,14,25,gold,"active,touchy",/uploads/1778778597898.png,,
-wren1711,hi,cat,female,2027,fully vaccinated,e,7cm,80kg,brown,"active,touchy,friendly",/uploads/1778795872812.png,,
-123,hi,cat,female,2027,fully vaccinated,e,7,80,brown,"active,touchy,friendly",/uploads/1778795872812.png,,
-n,m,cat,female,2027,fully vaccinated,e,7,80,brown,"active,touchy,friendly",/uploads/1778795872812.png,,
-1234,joeseph,dog,male,2027,fully vaccinated,s,7,100,brown,"active,touchy,friendly",/uploads/1778800703247.jpg,false,0
+wadood,botatto,cat,female,2017,none,street cat,14,25,gold,"touchy,friendly,sleepy,calm",/uploads/1778776255354.png,,0
+user1,reven,cat,female,2017,none,street cat,14,25,black,"active,touchy",/uploads/1778777000796.png,,0
+the_guy,botatto,cat,female,2017,1 1 1,street cat,14,25,gold,"active,touchy",/uploads/1778778597898.png,,0
+wren1711,hi,cat,female,2027,fully vaccinated,e,7cm,80kg,brown,"active,touchy,friendly",/uploads/1778795872812.png,,1
+123,hi,cat,female,2027,fully vaccinated,e,7,80,brown,"active,touchy,friendly",/uploads/1778795872812.png,,1
+n,m,dog,female,2027,fully vaccinated,DOG_007,7,80,brown,"active,touchy,friendly",/uploads/1778795872812.png,false,1
+1234,joeseph,dog,male,2027,fully vaccinated,s,7,100,brown,"active,touchy,friendly",/uploads/1778800703247.jpg,false,2

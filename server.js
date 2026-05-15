@@ -106,6 +106,18 @@ if (!fs.existsSync(CHAT_CSV)) {
     csvWriter.writeRecords([]);
 }
 
+let breedMap = {};
+async function loadBreeds() {
+    try {
+        const dogs = await mlPipeline.readCsv(path.join(DB_DIR, 'updated_dog_breeds.csv'));
+        dogs.forEach(d => { if(d.breed_id) breedMap[d.breed_id] = d.Name; });
+        const cats = await mlPipeline.readCsv(path.join(DB_DIR, 'updated_cat_breeds.csv'));
+        cats.forEach(c => { if(c.breed_id) breedMap[c.breed_id] = c.Name; });
+        console.log("Global breed dictionary loaded.");
+    } catch(e) { console.error("Failed to load breeds", e); }
+}
+loadBreeds();
+
 // Background Task: Periodic Apriori Scanning
 let globalAprioriRules = [];
 setInterval(async () => {
@@ -208,7 +220,8 @@ app.post('/api/login', async (req, res) => {
         if (match) {
             // Also return the user profile data
             const pets = await readCsv(PETS_CSV);
-            const pet = pets.find(p => p.username === username) || null;
+            let pet = pets.find(p => p.username === username) || null;
+            if (pet) pet = {...pet, breed: breedMap[pet.breed] || pet.breed};
             
             res.json({ success: true, message: 'Login successful', user: { username: user.username, email: user.email, phone: user.phone, location: user.location, fullName: user.fullName, photoPath: user.photoPath }, pet });
         } else {
@@ -344,8 +357,8 @@ app.get('/api/breeds', async (req, res) => {
         const type = req.query.type;
         const file = type === 'dog' ? 'DB/updated_dog_breeds.csv' : 'DB/updated_cat_breeds.csv';
         const breeds = await mlPipeline.readCsv(file);
-        const breedNames = breeds.map(b => b.Name).filter(Boolean);
-        res.json({ success: true, breeds: breedNames });
+        const breedData = breeds.map(b => ({ id: b.breed_id, name: b.Name })).filter(b => b.name && b.id);
+        res.json({ success: true, breeds: breedData });
     } catch (err) {
         console.error("Error fetching breeds:", err);
         res.status(500).json({ error: 'Server error' });
@@ -366,8 +379,8 @@ function sanitizeAgnes(node) {
 app.get('/api/admin/dashboard', async (req, res) => {
     try {
         const pets = await mlPipeline.readCsv(PETS_CSV);
-        const flaggedUsers = pets.filter(p => p.isFlagged === 'true');
-        const approvedUsers = pets.filter(p => p.isFlagged !== 'true');
+        const flaggedUsers = pets.filter(p => p.isFlagged === 'true').map(p => ({...p, breed: breedMap[p.breed] || p.breed}));
+        const approvedUsers = pets.filter(p => p.isFlagged !== 'true').map(p => ({...p, breed: breedMap[p.breed] || p.breed}));
         
         const clustering = await mlPipeline.runClustering();
         const interactions = await mlPipeline.readCsv(INTERACTIONS_CSV);
@@ -430,7 +443,8 @@ app.get('/api/playdates', async (req, res) => {
     try {
         const username = req.query.username;
         if (!username) return res.status(400).json({ error: 'Username required' });
-        const candidates = await mlPipeline.getPlaydatesFeed(username);
+        const candidatesRaw = await mlPipeline.getPlaydatesFeed(username);
+        const candidates = candidatesRaw.map(c => ({...c, breed: breedMap[c.breed] || c.breed}));
         res.json({ success: true, candidates });
     } catch (err) {
         res.status(500).json({ error: 'Failed to fetch playdates' });
