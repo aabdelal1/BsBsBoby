@@ -8,17 +8,18 @@ const hclust = require('ml-hclust');
 const { RandomForestClassifier } = require('ml-random-forest');
 const { Apriori } = require('node-apriori');
 
-// Google Drive API Integration for Cloud-Native State Persistence
-const { google } = require('googleapis');
-const auth = new google.auth.GoogleAuth({
-    scopes: ['https://www.googleapis.com/auth/drive.file']
-});
-const drive = google.drive({ version: 'v3', auth });
 
 const DB_DIR = path.join(__dirname, 'DB');
+const MODELS_DIR = path.join(__dirname, 'models'); 
+const STATE_FILE = path.join(MODELS_DIR, 'ml_pipeline_state.json'); 
+
+// Ensure models directory exists
+if (!fs.existsSync(MODELS_DIR)) {
+    fs.mkdirSync(MODELS_DIR, { recursive: true });
+}
+
 const PETS_CSV = path.join(DB_DIR, 'individual_pets.csv');
 const INTERACTIONS_CSV = path.join(DB_DIR, 'interactions.csv');
-const MODEL_STATE_FILE_ID = process.env.DRIVE_STATE_FILE_ID || null; // Google Drive File ID
 
 // --- HYPERPARAMETERS & CONFIGURATION ---
 const ML_CONFIG = {
@@ -39,64 +40,75 @@ let globalRfModel = null;
 let globalCentroids = null;
 let globalScalingParams = { means: [0,0,0], stdDevs: [1,1,1] }; 
 let globalOptimalK = 3; 
-
-// Mahalanobis Distribution Stats { meanVector, invCovMatrix }
 let globalClusterStats = {}; 
-
 let globalAgnesMap = {}; 
+let globalAgnesTreeCache = null; // Restored Cache Variable
 let globalUserSimMatrix = {}; 
 let globalItemLikers = {}; 
 let globalItemSkippers = {}; 
 let globalAprioriRules = {}; 
 
-// --- CLOUD PERSISTENCE ---
-async function syncToGoogleDrive() {
+// --- LOCAL PERSISTENCE ---
+async function loadStateFromLocal() {
     try {
+        if (fs.existsSync(STATE_FILE)) {
+            const data = fs.readFileSync(STATE_FILE, 'utf8');
+            const state = JSON.parse(data);
+            
+            globalCentroids = state.centroids || null;
+            globalScalingParams = state.scalingParams || { means: [0,0,0], stdDevs: [1,1,1] };
+            globalOptimalK = state.optimalK || 3;
+            globalClusterStats = state.clusterStats || {};
+            globalAgnesMap = state.agnesMap || {};
+            
+            if (state.aprioriRules) {
+                globalAprioriRules = {};
+                state.aprioriRules.forEach(([breed, rulesArr]) => {
+                    globalAprioriRules[breed] = new Map(rulesArr);
+                });
+            }
+            if (state.rfModelJSON) {
+                globalRfModel = RandomForestClassifier.load(state.rfModelJSON);
+            }
+            console.log("ML State fully restored from local models folder.");
+        }
+    } catch (err) {
+        console.log("Local restore skipped/failed (normal for first boot):", err.message);
+    }
+}
+
+async function syncToLocal() {
+    try {
+        const aprioriSerialized = Object.entries(globalAprioriRules).map(([breed, map]) => [breed, Array.from(map.entries())]);
         const state = {
             centroids: globalCentroids,
             scalingParams: globalScalingParams,
             optimalK: globalOptimalK,
             clusterStats: globalClusterStats,
             agnesMap: globalAgnesMap,
-            aprioriRules: Array.from(Object.entries(globalAprioriRules)) // Map to Array for JSON
+            aprioriRules: aprioriSerialized,
+            rfModelJSON: globalRfModel ? globalRfModel.toJSON() : null
         };
         
-        const fileMetadata = { name: 'ml_pipeline_state.json' };
-        const media = {
-            mimeType: 'application/json',
-            body: JSON.stringify(state)
-        };
-
-        if (MODEL_STATE_FILE_ID) {
-            await drive.files.update({ fileId: MODEL_STATE_FILE_ID, media: media });
-        } else {
-            await drive.files.create({ requestBody: fileMetadata, media: media });
-        }
-        console.log("ML State synced to Google Drive.");
+        // Write atomically to prevent corruption if the server crashes mid-save
+        fs.writeFileSync(STATE_FILE, JSON.stringify(state), 'utf8');
     } catch (err) {
-        console.error("Cloud sync failed, falling back to next cycle:", err.message);
+        console.error("Local sync failed:", err.message);
     }
 }
 
 // --- IO HELPERS ---
 const readCsv = (filePath) => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         const results = [];
         if (!fs.existsSync(filePath)) return resolve(results);
-        const readStream = fs.createReadStream(filePath);
-        readStream.pipe(csv())
-            .on('data', (data) => results.push(data))
-            .on('error', (err) => { readStream.destroy(); reject(err); })
-            .on('end', () => resolve(results));
+        const stream = fs.createReadStream(filePath);
+        stream.pipe(csv()).on('data', d => results.push(d)).on('end', () => resolve(results));
     });
 };
+const writeCsv = (filePath, headers, records) => createCsvWriter({ path: filePath, header: headers }).writeRecords(records);
 
-const writeCsv = (filePath, headers, records) => {
-    const csvWriter = createCsvWriter({ path: filePath, header: headers });
-    return csvWriter.writeRecords(records);
-};
-
-// --- PREPROCESSING & MAHALANOBIS GATEKEEPER ---
+// --- PREPROCESSING (Restored from Regression) ---
 function preprocess(petData) {
     const processed = { ...petData };
     processed.birthYear = parseInt(processed.birthYear) || 2020;
@@ -106,87 +118,87 @@ function preprocess(petData) {
     return processed;
 }
 
-function gatekeeper(rawPetData) {
-    if (isNaN(parseFloat(rawPetData.weight))) return true;
-    if (isNaN(parseInt(rawPetData.birthYear))) return true;
-    if (isNaN(parseFloat(rawPetData.length))) return true;
-
-    const age = new Date().getFullYear() - parseInt(rawPetData.birthYear);
-    const type = (rawPetData.type || '').toLowerCase();
-    const weight = parseFloat(rawPetData.weight);
-    
-    if (age > 25 || (type === 'cat' && weight > 40)) return true; 
-
-    // TRUE MAHALANOBIS DISTANCE 
-    if (globalCentroids && Object.keys(globalClusterStats).length > 0) {
-        const physFeatures = extractPhysical(rawPetData);
-        const scaledPhys = standardizePhysical([physFeatures])[0];
-
-        let minDistance = Infinity;
-        let closestCluster = -1;
-
-        globalCentroids.forEach((centroid, index) => {
-            const coords = Array.isArray(centroid) ? centroid : centroid.centroid;
-            const dist = Math.sqrt(coords.reduce((sum, val, d) => sum + Math.pow(val - scaledPhys[d], 2), 0));
-            if (dist < minDistance) { minDistance = dist; closestCluster = index; }
-        });
-
-        const stats = globalClusterStats[closestCluster];
-        if (stats && stats.invCovMatrix) {
-            const diff = scaledPhys.map((val, i) => val - stats.meanVector[i]);
-            let mahalanobisSq = 0;
-            
-            // D^2 = (x - μ)ᵀ Σ⁻¹ (x - μ)
-            for (let i = 0; i < 3; i++) {
-                let temp = 0;
-                for (let j = 0; j < 3; j++) {
-                    temp += diff[j] * stats.invCovMatrix[j][i];
-                }
-                mahalanobisSq += temp * diff[i];
-            }
-            
-            // Follows Chi-Square distribution for 3 degrees of freedom
-            if (mahalanobisSq > ML_CONFIG.chiSquareThreshold) return true; 
-        }
-    } else {
-        if (age > 25 || weight > 150) return true; // Cold start bounds
-    }
-
-    return false;
-}
-
-// --- FEATURE ENGINEERING ---
 function extractPhysical(p) {
-    const currentYear = new Date().getFullYear();
-    return [parseFloat(p.weight) || 10, parseFloat(p.length) || 20, currentYear - (parseInt(p.birthYear) || 2020)]; 
+    return [parseFloat(p.weight) || 10, parseFloat(p.length) || 20, new Date().getFullYear() - (parseInt(p.birthYear) || 2020)]; 
 }
-
 function extractBehavioral(p) {
-    const coreTraits = ['active', 'friendly', 'calm', 'touchy', 'sleepy'];
-    const petTraits = (p.personality || '').toLowerCase().split(',').map(t => t.trim());
-    return coreTraits.map(trait => petTraits.includes(trait) ? 1 : 0); 
+    const traits = (p.personality || '').toLowerCase().split(',').map(t => t.trim());
+    return ['active', 'friendly', 'calm', 'touchy', 'sleepy'].map(t => traits.includes(t) ? 1 : 0); 
 }
-
-function fitStandardizationParams(features) {
-    if (features.length === 0) return;
-    const means = [0, 0, 0];
-    const stdDevs = [1, 1, 1];
-
-    for(let idx = 0; idx < 3; idx++) {
-        const vals = features.map(f => f[idx]);
-        const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
-        const variance = vals.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / (vals.length > 1 ? vals.length - 1 : 1);
-        means[idx] = mean;
-        stdDevs[idx] = Math.sqrt(variance) || 0.001; 
-    }
-    globalScalingParams = { means, stdDevs };
-}
-
 function standardizePhysical(features) {
     return features.map(row => row.map((val, idx) => (val - globalScalingParams.means[idx]) / globalScalingParams.stdDevs[idx]));
 }
 
-// --- TRUE NORMALIZED KNEEDLE ---
+// --- MAHALANOBIS ROUTING & GATEKEEPER ---
+function getMahalanobisDistanceSq(scaledPoint, stats) {
+    if (!stats || !stats.invCovMatrix) return Infinity;
+    const diff = scaledPoint.map((val, i) => val - stats.meanVector[i]);
+    let mahalanobisSq = 0;
+    for (let i = 0; i < 3; i++) {
+        let temp = 0;
+        for (let j = 0; j < 3; j++) temp += diff[j] * stats.invCovMatrix[j][i];
+        mahalanobisSq += temp * diff[i];
+    }
+    return mahalanobisSq;
+}
+
+function findNearestCluster(scaledPhys) {
+    if (!globalCentroids) return { clusterIdx: 0, distanceSq: 0 };
+    let minDistance = Infinity;
+    let closestCluster = 0;
+
+    globalCentroids.forEach((centroid, index) => {
+        const stats = globalClusterStats[index];
+        let dist;
+        if (stats && stats.invCovMatrix) {
+            dist = getMahalanobisDistanceSq(scaledPhys, stats);
+        } else {
+            const coords = Array.isArray(centroid) ? centroid : centroid.centroid;
+            dist = coords.reduce((sum, val, d) => sum + Math.pow(val - scaledPhys[d], 2), 0);
+        }
+        
+        if (dist < minDistance) { 
+            minDistance = dist; 
+            closestCluster = index; 
+        }
+    });
+    return { clusterIdx: closestCluster, distanceSq: minDistance };
+}
+
+function gatekeeper(rawPetData) {
+    if (isNaN(parseFloat(rawPetData.weight)) || isNaN(parseInt(rawPetData.birthYear)) || isNaN(parseFloat(rawPetData.length))) return true;
+
+    const age = new Date().getFullYear() - parseInt(rawPetData.birthYear);
+    if (age > 25 || ((rawPetData.type || '').toLowerCase() === 'cat' && parseFloat(rawPetData.weight) > 40)) return true; 
+    if (['spam', 'fake', 'test'].includes((rawPetData.vaccination || '').toLowerCase())) return true;
+
+    if (globalCentroids && Object.keys(globalClusterStats).length > 0) {
+        const scaledPhys = standardizePhysical([extractPhysical(rawPetData)])[0];
+        const { clusterIdx, distanceSq } = findNearestCluster(scaledPhys);
+        
+        const stats = globalClusterStats[clusterIdx];
+        if (stats && stats.invCovMatrix && distanceSq > ML_CONFIG.chiSquareThreshold) {
+            return true; 
+        }
+    } else if (age > 25 || parseFloat(rawPetData.weight) > 150) {
+        return true; 
+    }
+    return false;
+}
+
+// --- AUTOMATED KNEEDLE ---
+function invert3x3Covariance(matrix, epsilon = 1e-4) {
+    let m = matrix.map((row, i) => row.map((val, j) => val + (i === j ? epsilon : 0))); 
+    const det = m[0][0]*(m[1][1]*m[2][2] - m[1][2]*m[2][1]) - m[0][1]*(m[1][0]*m[2][2] - m[1][2]*m[2][0]) + m[0][2]*(m[1][0]*m[2][1] - m[1][1]*m[2][0]);
+    if (Math.abs(det) < 1e-8) return [[1,0,0],[0,1,0],[0,0,1]]; 
+    const invDet = 1.0 / det;
+    return [
+        [(m[1][1]*m[2][2] - m[2][1]*m[1][2]) * invDet, (m[0][2]*m[2][1] - m[0][1]*m[2][2]) * invDet, (m[0][1]*m[1][2] - m[0][2]*m[1][1]) * invDet],
+        [(m[1][2]*m[2][0] - m[1][0]*m[2][2]) * invDet, (m[0][0]*m[2][2] - m[0][2]*m[2][0]) * invDet, (m[1][0]*m[0][2] - m[0][0]*m[1][2]) * invDet],
+        [(m[1][0]*m[2][1] - m[2][0]*m[1][1]) * invDet, (m[2][0]*m[0][1] - m[0][0]*m[2][1]) * invDet, (m[0][0]*m[1][1] - m[1][0]*m[0][1]) * invDet]
+    ];
+}
+
 function computeWCSS(data, clusters, centroids) {
     let wcss = 0;
     for (let i = 0; i < data.length; i++) {
@@ -207,7 +219,6 @@ function findOptimalK(data, maxK = 10) {
         wcssValues.push(computeWCSS(data, result.clusters, result.centroids));
     }
 
-    // Normalize both axes to [0, 1] for accurate geometric distance
     const minWcss = Math.min(...wcssValues);
     const maxWcss = Math.max(...wcssValues);
     const normWcss = wcssValues.map(w => (maxWcss - minWcss === 0) ? 0 : (w - minWcss) / (maxWcss - minWcss));
@@ -218,31 +229,12 @@ function findOptimalK(data, maxK = 10) {
     const C = normK[limit - 1] * normWcss[0] - normK[0] * normWcss[limit - 1];
     const denominator = Math.sqrt(A * A + B * B);
 
-    let maxDistance = -1;
-    let optimalK = 2; 
-
+    let maxDistance = -1, optimalK = 2; 
     for (let i = 0; i < limit; i++) {
         const perpDistance = Math.abs(A * normK[i] + B * normWcss[i] + C) / denominator;
-        if (perpDistance > maxDistance) {
-            maxDistance = perpDistance;
-            optimalK = i + 1;
-        }
+        if (perpDistance > maxDistance) { maxDistance = perpDistance; optimalK = i + 1; }
     }
     return Math.max(2, optimalK); 
-}
-
-// 3x3 Matrix Inverse (Adjugate Method) with Ridge Regularization
-function invert3x3Covariance(matrix, epsilon = 1e-4) {
-    let m = matrix.map((row, i) => row.map((val, j) => val + (i === j ? epsilon : 0))); // Ridge
-    const det = m[0][0]*(m[1][1]*m[2][2] - m[1][2]*m[2][1]) - m[0][1]*(m[1][0]*m[2][2] - m[1][2]*m[2][0]) + m[0][2]*(m[1][0]*m[2][1] - m[1][1]*m[2][0]);
-    if (Math.abs(det) < 1e-8) return [[1,0,0],[0,1,0],[0,0,1]]; // Fallback to Euclidean if singular
-
-    const invDet = 1.0 / det;
-    return [
-        [(m[1][1]*m[2][2] - m[2][1]*m[1][2]) * invDet, (m[0][2]*m[2][1] - m[0][1]*m[2][2]) * invDet, (m[0][1]*m[1][2] - m[0][2]*m[1][1]) * invDet],
-        [(m[1][2]*m[2][0] - m[1][0]*m[2][2]) * invDet, (m[0][0]*m[2][2] - m[0][2]*m[2][0]) * invDet, (m[1][0]*m[0][2] - m[0][0]*m[1][2]) * invDet],
-        [(m[1][0]*m[2][1] - m[2][0]*m[1][1]) * invDet, (m[2][0]*m[0][1] - m[0][0]*m[2][1]) * invDet, (m[0][0]*m[1][1] - m[1][0]*m[0][1]) * invDet]
-    ];
 }
 
 // --- BACKGROUND TRAINING TASKS ---
@@ -254,14 +246,20 @@ async function trainBackgroundModels() {
     if (approvedPets.length >= 3) {
         // 1. K-Means
         const rawPhysFeatures = approvedPets.map(extractPhysical);
-        fitStandardizationParams(rawPhysFeatures); 
+        const means = [0,0,0], stdDevs = [1,1,1];
+        for(let idx = 0; idx < 3; idx++) {
+            const vals = rawPhysFeatures.map(f => f[idx]);
+            const m = vals.reduce((a, b) => a + b, 0) / vals.length;
+            const v = vals.reduce((sum, val) => sum + Math.pow(val - m, 2), 0) / (vals.length > 1 ? vals.length - 1 : 1);
+            means[idx] = m; stdDevs[idx] = Math.sqrt(v) || 0.001; 
+        }
+        globalScalingParams = { means, stdDevs };
         const scaledPhysFeatures = standardizePhysical(rawPhysFeatures);
         
         globalOptimalK = findOptimalK(scaledPhysFeatures, ML_CONFIG.maxK);
         const kmeansResult = kmeans(scaledPhysFeatures, globalOptimalK, { initialization: 'kmeans++' });
         globalCentroids = kmeansResult.centroids;
 
-        // Covariance Matrix Calculation for Mahalanobis
         globalClusterStats = {};
         for(let k = 0; k < globalOptimalK; k++) {
             const pts = scaledPhysFeatures.filter((_, i) => kmeansResult.clusters[i] === k);
@@ -272,11 +270,7 @@ async function trainBackgroundModels() {
 
                 const covMatrix = [[0,0,0],[0,0,0],[0,0,0]];
                 pts.forEach(p => {
-                    for(let i=0; i<3; i++) {
-                        for(let j=0; j<3; j++) {
-                            covMatrix[i][j] += (p[i] - meanVector[i]) * (p[j] - meanVector[j]);
-                        }
-                    }
+                    for(let i=0; i<3; i++) for(let j=0; j<3; j++) covMatrix[i][j] += (p[i] - meanVector[i]) * (p[j] - meanVector[j]);
                 });
                 for(let i=0; i<3; i++) for(let j=0; j<3; j++) covMatrix[i][j] /= (pts.length - 1);
                 
@@ -284,13 +278,11 @@ async function trainBackgroundModels() {
             }
         }
 
-        // 2. AGNES (Complete Linkage on Binary Space with True Gap Detection)
-        const behavioralFeatures = approvedPets.map(extractBehavioral);
-        const tree = hclust.agnes(behavioralFeatures, { method: 'complete' }); // Superior for binary
-        
-        let maxGap = 0;
-        let bestCutHeight = tree.height;
-        
+        // 2. AGNES (Cache restored)
+        const tree = hclust.agnes(approvedPets.map(extractBehavioral), { method: 'complete' });
+        globalAgnesTreeCache = tree; 
+
+        let maxGap = 0, bestCutHeight = tree.height;
         function findLargestGap(node) {
             if (node.isLeaf) return;
             const childMaxHeight = Math.max(...node.children.map(c => c.height));
@@ -306,13 +298,11 @@ async function trainBackgroundModels() {
             let target = nodes.splice(splitIndex, 1)[0];
             nodes.push(...target.children);
         }
-        
         const extractLeaves = (node, arr) => {
             if (node.isLeaf) arr.push(node.index);
             else node.children.forEach(c => extractLeaves(c, arr));
             return arr;
         };
-        
         globalAgnesMap = {};
         nodes.forEach((clusterNode, archetypeId) => {
             extractLeaves(clusterNode, []).forEach(idx => {
@@ -321,11 +311,9 @@ async function trainBackgroundModels() {
         });
     }
 
-    // 3. Jaccard CF
-    const userLikes = {};
-    const userSkips = {};
-    const itemLikers = {}; 
-    const itemSkippers = {}; 
+    // 3. Jaccard CF (True Multiset Intersection)
+    const userLikes = {}, userSkips = {};
+    const itemLikers = {}, itemSkippers = {}; 
     
     interactions.forEach(i => {
         if (!userLikes[i.username]) userLikes[i.username] = new Set();
@@ -342,10 +330,7 @@ async function trainBackgroundModels() {
         }
     });
     
-    globalItemLikers = itemLikers;
-    globalItemSkippers = itemSkippers;
-
-    // Build matrix for ALL active users, not just likers
+    globalItemLikers = itemLikers; globalItemSkippers = itemSkippers;
     const users = Array.from(new Set([...Object.keys(userLikes), ...Object.keys(userSkips)]));
     const newSimMatrix = {};
     
@@ -353,12 +338,16 @@ async function trainBackgroundModels() {
         newSimMatrix[users[i]] = {};
         for (let j = i + 1; j < users.length; j++) {
             const u1 = users[i], u2 = users[j];
-            const setA = userLikes[u1] || new Set(), setB = userLikes[u2] || new Set();
             
-            let intersection = 0;
-            for (let item of setA) if (setB.has(item)) intersection++;
-            const union = setA.size + setB.size - intersection;
-            const sim = union === 0 ? 0 : intersection / union;
+            // True Set Union to prevent double counting
+            const u1Items = new Set([...(userLikes[u1] || []), ...(userSkips[u1] || [])]);
+            const u2Items = new Set([...(userLikes[u2] || []), ...(userSkips[u2] || [])]);
+            
+            let intersect = 0;
+            for (let item of u1Items) if (u2Items.has(item)) intersect++;
+            
+            const union = u1Items.size + u2Items.size - intersect;
+            const sim = union === 0 ? 0 : intersect / union;
             
             if (sim > ML_CONFIG.jaccardMinThreshold) { 
                 newSimMatrix[u1][u2] = sim;
@@ -369,133 +358,106 @@ async function trainBackgroundModels() {
     }
     globalUserSimMatrix = newSimMatrix;
 
-    // 4. Random Forest (Survivorship Bias Fixed)
+    // 4. Random Forest
     if (interactions.length >= 20 && approvedPets.length > 0) {
-        let allData = [];
-        let allLabels = []; 
-
+        let allData = [], allLabels = []; 
         interactions.forEach(interaction => {
-            // Map against the raw CSV to prevent survivorship bias from purged pets
             const userPet = pets.find(p => p.username === interaction.username);
             const targetPet = pets.find(p => p.username === interaction.targetUsername);
-            
             if (userPet && targetPet) {
                 const f1 = standardizePhysical([extractPhysical(userPet)])[0];
                 const f2 = standardizePhysical([extractPhysical(targetPet)])[0];
                 const diffVector = f1.map((val, i) => Math.abs(val - f2[i]));
-                const isSameBreed = (userPet.breed && targetPet.breed && userPet.breed === targetPet.breed) ? 1 : 0;
-                diffVector.push(isSameBreed); 
-                
+                diffVector.push((userPet.breed && targetPet.breed && userPet.breed === targetPet.breed) ? 1 : 0); 
                 allData.push(diffVector);
                 allLabels.push(interaction.action === 'like' ? 1 : 0);
             }
         });
 
-        const likeIndices = allLabels.map((l, i) => l === 1 ? i : -1).filter(i => i !== -1);
-        const skipIndices = allLabels.map((l, i) => l === 0 ? i : -1).filter(i => i !== -1);
+        const lIdx = allLabels.map((l, i) => l === 1 ? i : -1).filter(i => i !== -1);
+        const sIdx = allLabels.map((l, i) => l === 0 ? i : -1).filter(i => i !== -1);
         
-        if (likeIndices.length > 0 && skipIndices.length > 0) {
-            const minSize = Math.min(likeIndices.length, skipIndices.length);
-            const balancedIndices = [
-                ...likeIndices.sort(() => 0.5 - Math.random()).slice(0, minSize),
-                ...skipIndices.sort(() => 0.5 - Math.random()).slice(0, minSize)
-            ].sort(() => 0.5 - Math.random()); 
+        if (lIdx.length > 0 && sIdx.length > 0) {
+            const minSize = Math.min(lIdx.length, sIdx.length);
+            const bIdx = [...lIdx.sort(() => 0.5 - Math.random()).slice(0, minSize), ...sIdx.sort(() => 0.5 - Math.random()).slice(0, minSize)].sort(() => 0.5 - Math.random()); 
+            
+            const bData = bIdx.map(i => allData[i]);
+            const bLabels = bIdx.map(i => allLabels[i]);
 
-            const bData = balancedIndices.map(i => allData[i]);
-            const bLabels = balancedIndices.map(i => allLabels[i]);
-
-            const splitPoint = Math.floor(bData.length * 0.8);
-            const trainData = bData.slice(0, splitPoint);
-            const trainLabels = bLabels.slice(0, splitPoint);
-            const testData = bData.slice(splitPoint);
-            const testLabels = bLabels.slice(splitPoint);
-
-            if (trainData.length > 0 && testData.length > 0) {
-                const tempModel = new RandomForestClassifier({ 
-                    seed: Math.floor(Math.random() * 1000), 
-                    maxFeatures: ML_CONFIG.rfMaxFeatures, 
-                    replacement: true, nEstimators: ML_CONFIG.rfEstimators 
-                });
-                tempModel.train(trainData, trainLabels);
+            const split = Math.floor(bData.length * 0.8);
+            if (split > 0) {
+                const tempModel = new RandomForestClassifier({ maxFeatures: ML_CONFIG.rfMaxFeatures, replacement: true, nEstimators: ML_CONFIG.rfEstimators });
+                tempModel.train(bData.slice(0, split), bLabels.slice(0, split));
 
                 let correct = 0;
-                const preds = tempModel.predict(testData);
+                const testLabels = bLabels.slice(split);
+                const preds = tempModel.predict(bData.slice(split));
                 for(let i = 0; i < testLabels.length; i++) if (preds[i] === testLabels[i]) correct++;
 
-                if ((correct / testLabels.length) > 0.55) {
-                    globalRfModel = tempModel;
-                }
+                if ((correct / testLabels.length) > 0.55) globalRfModel = tempModel;
             }
         }
     }
 
-    syncToGoogleDrive(); // Push updated ML state to cloud
+    syncToLocal();
 }
 
-// 5. APRIORI
+// 5. APRIORI (Restored as Exported Isolated Function)
 async function runApriori() {
     const interactions = await readCsv(INTERACTIONS_CSV);
     const pets = await readCsv(PETS_CSV);
     
     const sessionLikes = {};
-    const itemFrequencies = {}; 
+    const itemTxFrequencies = {}; 
     
     interactions.filter(i => i.action === 'like').forEach(i => {
         const targetPet = pets.find(p => p.username === i.targetUsername);
         if (targetPet && targetPet.breed) {
             const sessionId = `${i.username}_${Math.floor(i.timestamp / ML_CONFIG.sessionWindowMs)}`;
-            const breedKey = `breed_${targetPet.breed}`;
             if (!sessionLikes[sessionId]) sessionLikes[sessionId] = new Set();
-            sessionLikes[sessionId].add(breedKey);
+            sessionLikes[sessionId].add(`breed_${targetPet.breed}`);
         }
     });
 
     const transactions = Object.values(sessionLikes).map(set => Array.from(set));
     const totalTx = transactions.length;
-    if (totalTx < 5) return [];
-
-    transactions.forEach(tx => {
-        tx.forEach(item => { itemFrequencies[item] = (itemFrequencies[item] || 0) + 1; });
-    });
-
-    return new Promise((resolve) => {
-        const apriori = new Apriori(ML_CONFIG.aprioriMinSupport); 
-        apriori.exec(transactions).then(result => {
-            const newRules = {};
-            result.itemsets.forEach(itemset => {
-                if (itemset.items.length === 2) {
-                    const breedA = itemset.items[0], breedB = itemset.items[1];
-                    const supportAB = itemset.support; 
-                    const supportA = itemFrequencies[breedA] / totalTx;
-                    const supportB = itemFrequencies[breedB] / totalTx;
-                    const lift = supportAB / (supportA * supportB);
-                    
-                    if (lift > ML_CONFIG.aprioriMinLift) {
-                        if (!newRules[breedA]) newRules[breedA] = new Map();
-                        if (!newRules[breedB]) newRules[breedB] = new Map();
-                        newRules[breedA].set(breedB, lift);
-                        newRules[breedB].set(breedA, lift);
-                    }
-                }
-            });
-            globalAprioriRules = newRules;
-            resolve(result.itemsets);
+    if (totalTx >= 5) {
+        transactions.forEach(tx => {
+            const uniqueItems = new Set(tx);
+            uniqueItems.forEach(item => { itemTxFrequencies[item] = (itemTxFrequencies[item] || 0) + 1; });
         });
-    });
+
+        return new Promise((resolve) => {
+            const apriori = new Apriori(ML_CONFIG.aprioriMinSupport); 
+            apriori.exec(transactions).then(result => {
+                const newRules = {};
+                result.itemsets.forEach(itemset => {
+                    if (itemset.items.length === 2) {
+                        const breedA = itemset.items[0], breedB = itemset.items[1];
+                        const supportA = itemTxFrequencies[breedA] / totalTx;
+                        const supportB = itemTxFrequencies[breedB] / totalTx;
+                        const lift = itemset.support / (supportA * supportB);
+                        
+                        if (lift > ML_CONFIG.aprioriMinLift) {
+                            if (!newRules[breedA]) newRules[breedA] = new Map();
+                            if (!newRules[breedB]) newRules[breedB] = new Map();
+                            newRules[breedA].set(breedB, lift);
+                            newRules[breedB].set(breedA, lift);
+                        }
+                    }
+                });
+                globalAprioriRules = newRules;
+                syncToLocal();
+                resolve(result.itemsets);
+            });
+        });
+    }
+    return [];
 }
 
 function assignToCluster(newPetData) {
-    if (!globalCentroids) return 0; 
     const scaledPhys = standardizePhysical([extractPhysical(newPetData)])[0];
-    let minDistance = Infinity;
-    let closestCluster = 0;
-
-    globalCentroids.forEach((centroid, index) => {
-        const coords = Array.isArray(centroid) ? centroid : centroid.centroid;
-        const dist = Math.sqrt(coords.reduce((sum, val, i) => sum + Math.pow(val - scaledPhys[i], 2), 0));
-        if (dist < minDistance) { minDistance = dist; closestCluster = index; }
-    });
-    return closestCluster;
+    return findNearestCluster(scaledPhys).clusterIdx;
 }
 
 // --- RECOMMENDATION ENGINE ---
@@ -505,16 +467,14 @@ async function getPlaydatesFeed(username) {
     if (!currentUser || currentUser.isFlagged === 'true') return [];
 
     let candidates = pets.filter(p => p.username !== username && p.isFlagged !== 'true');
-    if (candidates.length === 0) return [];
-
     const interactions = await readCsv(INTERACTIONS_CSV);
-    const userLikes = interactions.filter(i => i.username === username && i.action === 'like');
-    
     const pastInteractions = new Set(interactions.filter(i => i.username === username).map(i => i.targetUsername));
     candidates = candidates.filter(c => !pastInteractions.has(c.username));
+    
     if (candidates.length === 0) return [];
 
     const archetypeCounts = {};
+    const userLikes = interactions.filter(i => i.username === username && i.action === 'like');
     userLikes.forEach(like => {
         const archId = globalAgnesMap[like.targetUsername];
         if (archId !== undefined) archetypeCounts[archId] = (archetypeCounts[archId] || 0) + 1;
@@ -536,11 +496,8 @@ async function getPlaydatesFeed(username) {
     const targetBeh = extractBehavioral(currentUser);
 
     candidates.forEach(c => {
-        const cPhys = standardizePhysical([extractPhysical(c)])[0];
-        const cBeh = extractBehavioral(c);
-        c._tempPhys = cPhys; 
-        
-        let physDistance = Math.sqrt(cPhys.reduce((sum, val, idx) => sum + Math.pow(val - targetPhys[idx], 2), 0));
+        c._tempPhys = standardizePhysical([extractPhysical(c)])[0];
+        let physDistance = Math.sqrt(c._tempPhys.reduce((sum, val, idx) => sum + Math.pow(val - targetPhys[idx], 2), 0));
         let physScore = Math.exp(-physDistance * 0.5); 
 
         let cfRaw = 0, cfInteractions = 0;
@@ -550,30 +507,27 @@ async function getPlaydatesFeed(username) {
                 cfRaw += globalUserSimMatrix[username][liker]; cfInteractions++;
             }
         });
-        
         const skippers = globalItemSkippers[c.username] || new Set();
         skippers.forEach(skipper => {
             if (globalUserSimMatrix[username] && globalUserSimMatrix[username][skipper]) {
                 cfRaw -= globalUserSimMatrix[username][skipper]; cfInteractions++;
             }
         });
-        
-        let rawAvg = cfInteractions > 0 ? (cfRaw / cfInteractions) : 0;
-        let cfScore = Math.max(0, Math.min(1, (rawAvg + 1) / 2)); // Strictly Clamped
+        let cfScore = Math.max(0, Math.min(1, cfInteractions > 0 ? (cfRaw / cfInteractions + 1) / 2 : 0.5)); 
 
         let behScore = 0;
         if (preferredArchetype && globalAgnesMap[c.username] === parseInt(preferredArchetype)) {
             behScore = 1.0;
         } else {
             let overlaps = 0;
+            const cBeh = extractBehavioral(c);
             for(let i=0; i<5; i++) if (cBeh[i] === 1 && targetBeh[i] === 1) overlaps++;
             behScore = overlaps / 5;
         }
 
         let aprioriScore = 0.0;
         if (c.breed && userBreedAssociations.has(`breed_${c.breed}`)) {
-            const lift = userBreedAssociations.get(`breed_${c.breed}`);
-            aprioriScore = Math.min((lift - 1.0) / 2.0, 1.0); 
+            aprioriScore = Math.min((userBreedAssociations.get(`breed_${c.breed}`) - 1.0) / 2.0, 1.0); 
         }
 
         c.fusionScore = (physScore * ML_CONFIG.fusionWeights.physical) + 
@@ -585,19 +539,29 @@ async function getPlaydatesFeed(username) {
     candidates.sort((a, b) => b.fusionScore - a.fusionScore); 
     candidates = candidates.slice(0, 50); 
 
+    // CONTINUOUS PROBABILISTIC RF MULTIPLIER (With Defensive Fallback)
     if (globalRfModel) {
         const inferenceData = candidates.map(c => {
             const diffVector = targetPhys.map((val, idx) => Math.abs(val - c._tempPhys[idx]));
-            const isSameBreed = (currentUser.breed && c.breed && currentUser.breed === c.breed) ? 1 : 0;
-            diffVector.push(isSameBreed);
+            diffVector.push((currentUser.breed && c.breed && currentUser.breed === c.breed) ? 1 : 0);
             return diffVector;
         });
         
-        const predictions = globalRfModel.predict(inferenceData);
-        
+        const basePredictions = globalRfModel.predict(inferenceData);
+
         candidates.forEach((c, i) => {
-            c.fusionScore *= predictions[i] === 1 ? 1.2 : 0.8;
-            c.matchScore = predictions[i] === 1 ? 'High' : 'Low'; 
+            let prob;
+            if (globalRfModel.estimators && globalRfModel.estimators.length > 0) {
+                let positiveVotes = 0;
+                globalRfModel.estimators.forEach(tree => { if (tree.predict([inferenceData[i]])[0] === 1) positiveVotes++; });
+                prob = positiveVotes / globalRfModel.estimators.length;
+            } else {
+                prob = basePredictions[i]; // Fallback if internal API changes
+            }
+            
+            const multiplier = 0.8 + (prob * 0.4); 
+            c.fusionScore = Math.min(1.0, c.fusionScore * multiplier);
+            c.matchScore = prob > 0.5 ? 'High' : 'Low'; 
         });
         candidates.sort((a, b) => b.fusionScore - a.fusionScore);
     } else {
@@ -608,13 +572,21 @@ async function getPlaydatesFeed(username) {
     return candidates;
 }
 
+function getAgnesTree() { return { tree: globalAgnesTreeCache, optimalK: globalOptimalK }; }
+function getAprioriRules() { 
+    return Object.fromEntries(Object.entries(globalAprioriRules).map(([k, v]) => [k, Array.from(v.entries())])); 
+}
+
 module.exports = {
+    loadStateFromLocal,
     preprocess,
     gatekeeper,
     trainBackgroundModels,
     assignToCluster,
     runApriori,
     getPlaydatesFeed,
+    getAgnesTree,
+    getAprioriRules,
     readCsv,
     writeCsv
 };

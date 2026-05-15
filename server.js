@@ -80,19 +80,19 @@ async function loadBreeds() {
 loadBreeds();
 
 // --- BACKGROUND MACHINE LEARNING TASKS ---
-let globalAprioriRules = [];
-
 const runBackgroundTasks = async () => {
     try {
         await mlPipeline.trainBackgroundModels();
-        console.log("Background Pipeline (10D Multi-Hot K-Means, AGNES Archetypes, Jaccard Synergy, Balanced RF) trained.");
-        globalAprioriRules = await mlPipeline.runApriori();
-        console.log("Apriori rule sets injected into active recommendation engine.");
+        await mlPipeline.runApriori(); 
+        console.log("Background Pipeline (10D, Mahalanobis, Probabilistic RF, True Apriori) trained.");
     } catch (err) { console.error("Background task error:", err); }
 };
 
-setInterval(runBackgroundTasks, 300000); 
-setTimeout(runBackgroundTasks, 2000);
+// Initialize Local State on Boot, then start the scheduler
+mlPipeline.loadStateFromLocal().then(() => {
+    setInterval(runBackgroundTasks, 300000); 
+    setTimeout(runBackgroundTasks, 2000);
+});
 
 const upload = multer({
     storage: multer.diskStorage({
@@ -202,7 +202,6 @@ app.get('/api/breeds', async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Server error while fetching breeds' }); }
 });
 
-// Admin Route Helper
 function sanitizeAgnes(node) {
     if (!node) return null;
     return {
@@ -219,10 +218,11 @@ app.get('/api/admin/dashboard', async (req, res) => {
         const interactions = await mlPipeline.readCsv(INTERACTIONS_CSV);
         
         const agnesTree = mlPipeline.getAgnesTree();
+        const aprioriRules = mlPipeline.getAprioriRules();
         
         res.json({ 
             success: true, suspicious: flaggedUsers, users: approvedUsers,
-            interactions: interactions, agnes: sanitizeAgnes(agnesTree), apriori: globalAprioriRules 
+            interactions: interactions, agnes: sanitizeAgnes(agnesTree.tree), optimalK: agnesTree.optimalK, apriori: aprioriRules 
         });
     } catch (err) { res.status(500).json({ error: 'Failed to load dashboard data' }); }
 });
