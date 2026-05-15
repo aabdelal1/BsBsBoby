@@ -85,7 +85,7 @@ let globalAprioriRules = [];
 const runBackgroundTasks = async () => {
     try {
         await mlPipeline.trainBackgroundModels();
-        console.log("Background Pipeline (5D K-Means, AGNES Archetypes, Jaccard Synergy, 7-Rule RF) trained.");
+        console.log("Background Pipeline (10D Multi-Hot K-Means, AGNES Archetypes, Jaccard Synergy, Balanced RF) trained.");
         globalAprioriRules = await mlPipeline.runApriori();
         console.log("Apriori rule sets injected into active recommendation engine.");
     } catch (err) { console.error("Background task error:", err); }
