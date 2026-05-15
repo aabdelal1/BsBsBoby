@@ -15,13 +15,14 @@ const INTERACTIONS_CSV = path.join(DB_DIR, 'interactions.csv');
 // --- GLOBAL STATE & MODELS ---
 let globalRfModel = null;
 let globalCentroids = null;
-let globalScalingParams = { min: [0,0,0,0,0], max: [100,100,25,1,1] }; // [weight, length, age, isDog, isMale]
+let globalScalingParams = { min: [0,0,0,0,0], max: [100,100,25,1,1] }; 
 
-// Background Caches to ensure O(1) API lookups
-let globalAgnesMap = {}; // { username: clusterId }
+// Background Caches (O(1) Lookups)
+let globalAgnesMap = {}; 
 let globalAgnesTreeCache = null; 
-let globalUserSimMatrix = {}; // { userA: { userB: 0.85 } }
-let globalAprioriAssociations = {}; // { 'breed_A': Set(['breed_B']) }
+let globalUserSimMatrix = {}; 
+let globalItemLikers = {}; // NEW: { targetPet: Set(['userA', 'userB']) }
+let globalAprioriAssociations = {}; // NEW: { 'breed_A': Map({'breed_B' => supportScore}) }
 
 // --- IO HELPERS ---
 const readCsv = (filePath) => {
@@ -58,11 +59,12 @@ function gatekeeper(rawPetData) {
 
     const age = new Date().getFullYear() - parseInt(rawPetData.birthYear);
     const type = (rawPetData.type || '').toLowerCase();
+    const weight = parseFloat(rawPetData.weight);
     
-    // Improved Species-Aware Anomaly Detection
     if (age > 25) return true;
-    if (type === 'cat' && parseFloat(rawPetData.weight) > 40) return true; 
-    if (age <= 1 && parseFloat(rawPetData.weight) > 100) return true;
+    if (type === 'cat' && weight > 40) return true; 
+    // FIXED: Young dog giant-breed exception
+    if (age <= 1 && weight > 100 && type !== 'dog') return true; 
 
     const spamKeywords = ['spam', 'fake', 'none', 'test'];
     if (spamKeywords.includes((rawPetData.vaccination || '').toLowerCase())) return true;
@@ -100,6 +102,7 @@ function updateScalingParams(features) {
     });
 }
 
+// Note: Standard min-max. Binary features will correctly hit 0.0 or 1.0.
 function normalizeFeatures(features) {
     return features.map(row => 
         row.map((val, i) => {
@@ -126,15 +129,16 @@ async function trainBackgroundModels() {
         const kmeansResult = kmeans(scaledFeatures, Math.max(2, k));
         globalCentroids = kmeansResult.centroids;
 
-        // 2. AGNES (Dendrogram Cutting for Archetypes)
+        // 2. AGNES
         const tree = hclust.agnes(scaledFeatures, { method: 'ward' });
-        globalAgnesTreeCache = tree; // Cache for admin dashboard
+        globalAgnesTreeCache = tree; 
         
-        // Cut tree into k macro-clusters
         let nodes = [tree];
-        while (nodes.length < k && !nodes[0].isLeaf) {
+        // FIXED: Loop exit bug
+        while (nodes.length < k && nodes.some(n => !n.isLeaf)) {
             nodes.sort((a, b) => b.height - a.height);
-            let highest = nodes.shift();
+            let splitIndex = nodes.findIndex(n => !n.isLeaf);
+            let highest = nodes.splice(splitIndex, 1)[0];
             nodes.push(...highest.children);
         }
         
@@ -153,12 +157,19 @@ async function trainBackgroundModels() {
         });
     }
 
-    // 3. Jaccard User-to-User Similarity Matrix
+    // 3. Jaccard & Reverse Liker Cache
     const userLikes = {};
+    const itemLikers = {}; // NEW: O(1) Candidate lookup
+    
     interactions.filter(i => i.action === 'like').forEach(i => {
         if (!userLikes[i.username]) userLikes[i.username] = new Set();
         userLikes[i.username].add(i.targetUsername);
+        
+        if (!itemLikers[i.targetUsername]) itemLikers[i.targetUsername] = new Set();
+        itemLikers[i.targetUsername].add(i.username);
     });
+    
+    globalItemLikers = itemLikers;
 
     const users = Object.keys(userLikes);
     const newSimMatrix = {};
@@ -175,7 +186,7 @@ async function trainBackgroundModels() {
             const union = setA.size + setB.size - intersection;
             const sim = union === 0 ? 0 : intersection / union;
             
-            if (sim > 0.1) { // Threshold to prevent noise
+            if (sim > 0.1) { 
                 newSimMatrix[u1][u2] = sim;
                 if (!newSimMatrix[u2]) newSimMatrix[u2] = {};
                 newSimMatrix[u2][u1] = sim;
@@ -184,7 +195,7 @@ async function trainBackgroundModels() {
     }
     globalUserSimMatrix = newSimMatrix;
 
-    // 4. Random Forest Inference
+    // 4. Random Forest
     if (interactions.length >= 10 && approvedPets.length > 0) {
         const trainingData = [];
         const trainingLabels = []; 
@@ -212,7 +223,7 @@ async function trainBackgroundModels() {
     }
 }
 
-// 5. APRIORI (Extracting applied associations)
+// 5. APRIORI
 async function runApriori() {
     const interactions = await readCsv(INTERACTIONS_CSV);
     const pets = await readCsv(PETS_CSV);
@@ -230,15 +241,16 @@ async function runApriori() {
     if (transactions.length < 5) return [];
 
     return new Promise((resolve) => {
-        const apriori = new Apriori(0.10); // Lowered threshold to 10% to catch more niche breeds
+        const apriori = new Apriori(0.10); 
         apriori.exec(transactions).then(result => {
             const newAssociations = {};
             result.itemsets.forEach(itemset => {
                 if (itemset.items.length > 1) {
                     itemset.items.forEach(breed1 => {
-                        if (!newAssociations[breed1]) newAssociations[breed1] = new Set();
+                        if (!newAssociations[breed1]) newAssociations[breed1] = new Map();
                         itemset.items.forEach(breed2 => {
-                            if (breed1 !== breed2) newAssociations[breed1].add(breed2);
+                            // FIXED: Store the support score in a Map instead of a flat Set
+                            if (breed1 !== breed2) newAssociations[breed1].set(breed2, itemset.support);
                         });
                     });
                 }
@@ -263,7 +275,7 @@ function assignToCluster(newPetData) {
     return closestCluster;
 }
 
-// --- RECOMMENDATION ENGINE (O(1) Matrix Synergy + 5D Hybrid) ---
+// --- RECOMMENDATION ENGINE ---
 async function getPlaydatesFeed(username) {
     let pets = await readCsv(PETS_CSV);
     const currentUser = pets.find(p => p.username === username);
@@ -275,12 +287,11 @@ async function getPlaydatesFeed(username) {
     const interactions = await readCsv(INTERACTIONS_CSV);
     const userLikes = interactions.filter(i => i.username === username && i.action === 'like');
     
-    // 1. Filter out previously seen pets
     const pastInteractions = new Set(interactions.filter(i => i.username === username).map(i => i.targetUsername));
     candidates = candidates.filter(c => !pastInteractions.has(c.username));
     if (candidates.length === 0) return [];
 
-    // Establish User's "Archetype" from AGNES history
+    // AGNES Archetype
     const archetypeCounts = {};
     userLikes.forEach(like => {
         const archId = globalAgnesMap[like.targetUsername];
@@ -288,71 +299,86 @@ async function getPlaydatesFeed(username) {
     });
     const preferredArchetype = Object.keys(archetypeCounts).sort((a, b) => archetypeCounts[b] - archetypeCounts[a])[0];
 
-    // Establish User's "Apriori" active associations
-    const userBreedAssociations = new Set();
+    // Apriori Active Associations (Now a Map with support scores)
+    const userBreedAssociations = new Map(); 
     userLikes.forEach(like => {
         const targetPet = pets.find(p => p.username === like.targetUsername);
         if (targetPet && targetPet.breed && globalAprioriAssociations[`breed_${targetPet.breed}`]) {
-            globalAprioriAssociations[`breed_${targetPet.breed}`].forEach(b => userBreedAssociations.add(b));
+            const associationsMap = globalAprioriAssociations[`breed_${targetPet.breed}`];
+            associationsMap.forEach((supportVal, associatedBreed) => {
+                // Keep the highest support value if breeds overlap
+                const currentVal = userBreedAssociations.get(associatedBreed) || 0;
+                if (supportVal > currentVal) userBreedAssociations.set(associatedBreed, supportVal);
+            });
         }
     });
 
     const scaledData = normalizeFeatures(extractFeatures(candidates));
     const targetScaled = normalizeFeatures(extractFeatures([currentUser]))[0];
+    
+    // FIXED: Weighted Features -> [Weight, Length, Age, isDog, isMale]
+    const featureWeights = [0.5, 0.5, 0.5, 4.0, 1.5]; 
 
     candidates.forEach((c, i) => {
-        const f = scaledData[i];
+        c.scaledFeatures = scaledData[i]; // Bind features BEFORE sorting
         
-        // Base 5D KNN Distance
-        let distance = Math.sqrt(f.reduce((sum, val, idx) => sum + Math.pow(val - targetScaled[idx], 2), 0));
+        // Base 5D KNN Distance (Weighted)
+        let distance = Math.sqrt(c.scaledFeatures.reduce((sum, val, idx) => {
+            return sum + (featureWeights[idx] * Math.pow(val - targetScaled[idx], 2));
+        }, 0));
 
-        // CF Boost (Lookup Pre-computed Matrix)
+        // CF Boost (FIXED: True O(1) Lookup)
         let cfBoost = 0;
-        const likersOfCandidate = interactions.filter(int => int.targetUsername === c.username && int.action === 'like').map(int => int.username);
+        const likersOfCandidate = globalItemLikers[c.username] || new Set();
         likersOfCandidate.forEach(liker => {
             if (globalUserSimMatrix[username] && globalUserSimMatrix[username][liker]) {
-                cfBoost += globalUserSimMatrix[username][liker]; // Add established synergy
+                cfBoost += globalUserSimMatrix[username][liker]; 
             }
         });
 
-        // Archetype Boost (AGNES)
+        // AGNES Boost
         let agnesBoost = 0;
         if (preferredArchetype && globalAgnesMap[c.username] === parseInt(preferredArchetype)) {
-            agnesBoost = 0.3; // High affinity for this demographic
+            agnesBoost = 0.3; 
         }
 
-        // Association Boost (Apriori)
+        // Apriori Boost (FIXED: Confidence Weighted)
         let aprioriBoost = 0;
         if (c.breed && userBreedAssociations.has(`breed_${c.breed}`)) {
-            aprioriBoost = 0.25; // Data mining dictates they usually like this pairing
+            const supportScore = userBreedAssociations.get(`breed_${c.breed}`);
+            aprioriBoost = supportScore * 1.5; // Scale the raw support percentage into a meaningful boost
         }
 
-        // Apply Hybrid Reductions (Lower distance is better)
         c.hybridDistance = distance - (cfBoost * 0.4) - agnesBoost - aprioriBoost; 
     });
     
     candidates.sort((a, b) => a.hybridDistance - b.hybridDistance);
     candidates = candidates.slice(0, 50); 
 
-    // RF Predictive Filter
+    // Random Forest (FIXED: Uses correctly bound scaledFeatures)
     if (globalRfModel) {
-        const inferenceData = candidates.map((c, i) => {
+        const inferenceData = candidates.map(c => {
             const f1 = targetScaled;
-            const f2 = scaledData[i]; // Needs to map back to the slice, but scaledData is from original array
+            const f2 = c.scaledFeatures; 
             return f1.map((val, idx) => Math.abs(val - f2[idx]));
         });
+        
         const predictions = globalRfModel.predict(inferenceData);
+        
         candidates.forEach((c, i) => {
-            c.matchScore = predictions[i] === 1 ? 'High' : 'Medium'; 
+            // FIXED: Added 'Low' state to expose actual confident skips
+            c.matchScore = predictions[i] === 1 ? 'High' : 'Low'; 
         });
     } else {
         candidates.forEach(c => c.matchScore = 'Pending Model');
     }
 
+    // Clean up temporary feature bindings before sending to frontend
+    candidates.forEach(c => delete c.scaledFeatures);
+
     return candidates;
 }
 
-// O(1) Dashboard retrieval
 function getAgnesTree() { return globalAgnesTreeCache; }
 
 module.exports = {
