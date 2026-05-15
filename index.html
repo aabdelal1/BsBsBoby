@@ -657,6 +657,56 @@
         min-height: 100vh;
       }
     }
+
+    /* ══ LOCATION BUTTON ══ */
+    .location-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .location-wrapper .textarea-field {
+      width: 100%;
+      padding-right: 44px;
+      box-sizing: border-box;
+    }
+
+    .btn-location {
+      position: absolute;
+      right: 8px;
+      bottom: 10px;
+      background: var(--pink);
+      border: 2px solid var(--black);
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      line-height: 1;
+      transition: transform .15s, background .15s;
+      padding: 0;
+    }
+
+    .btn-location:hover {
+      transform: scale(1.12);
+      background: var(--red);
+    }
+
+    .btn-location:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-location.spinning {
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 
@@ -709,7 +759,10 @@
             <input class="input-field" id="signup-username" type="text" placeholder="userName" />
             <input class="input-field" id="signup-email" type="email" placeholder="email" />
             <input class="input-field" id="signup-phone" type="tel" placeholder="phone number" />
-            <textarea class="textarea-field" id="signup-location" placeholder="location"></textarea>
+            <div class="location-wrapper">
+              <textarea class="textarea-field" id="signup-location" placeholder="location"></textarea>
+              <button class="btn-location" id="signup-location-btn" title="Use my location" onclick="getLocation('signup-location', 'signup-location-btn')">📍</button>
+            </div>
             <input class="input-field" id="signup-password" type="password" placeholder="password" />
             <input class="input-field" id="signup-verify-password" type="password" placeholder="verify password" />
           </div>
@@ -903,7 +956,10 @@
           <input class="input-field" id="user-profile-fullname" type="text" placeholder="full name" />
           <p class="email-text" id="user-profile-email">User@gmail.com</p>
           <input class="input-field" id="user-profile-phone" type="tel" placeholder="phone number" />
-          <textarea class="textarea-field" id="user-profile-location" placeholder="location"></textarea>
+          <div class="location-wrapper">
+            <textarea class="textarea-field" id="user-profile-location" placeholder="location"></textarea>
+            <button class="btn-location" id="profile-location-btn" title="Use my location" onclick="getLocation('user-profile-location', 'profile-location-btn')">📍</button>
+          </div>
           <button class="btn" style="margin-top:8px;" onclick="saveUserProfile()">save changes</button>
           <button class="btn btn-outline" style="margin-top:8px; border-color: #e83030; color: #e83030;" onclick="logout()">log out</button>
         </div>
@@ -1110,6 +1166,70 @@
   </div>
 
   <script>
+    /**
+     * Uses the browser Geolocation API + OpenStreetMap Nominatim
+     * to fill a location textarea with a human-readable address.
+     * @param {string} textareaId  – id of the <textarea> to populate
+     * @param {string} btnId       – id of the 📍 button (for loading state)
+     */
+    async function getLocation(textareaId, btnId) {
+      const textarea = document.getElementById(textareaId);
+      const btn = document.getElementById(btnId);
+
+      if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser.');
+        return;
+      }
+
+      // Show spinner state
+      btn.disabled = true;
+      btn.textContent = '⏳';
+      btn.classList.add('spinning');
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            // Reverse-geocode using OpenStreetMap Nominatim (free, no key needed)
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+              { headers: { 'Accept-Language': 'en' } }
+            );
+            const geo = await res.json();
+
+            // Build a clean location string from the response
+            const a = geo.address || {};
+            const parts = [
+              a.city || a.town || a.village || a.county || '',
+              a.state || '',
+              a.country || ''
+            ].filter(Boolean);
+
+            textarea.value = parts.length ? parts.join(', ') : geo.display_name || `${latitude}, ${longitude}`;
+          } catch (err) {
+            // Fall back to raw coordinates if Nominatim fails
+            textarea.value = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+          } finally {
+            btn.disabled = false;
+            btn.textContent = '📍';
+            btn.classList.remove('spinning');
+          }
+        },
+        (error) => {
+          btn.disabled = false;
+          btn.textContent = '📍';
+          btn.classList.remove('spinning');
+
+          const messages = {
+            1: 'Location permission denied. Please allow location access in your browser settings.',
+            2: 'Location information is unavailable. Check your GPS or network.',
+            3: 'Location request timed out. Please try again.'
+          };
+          alert(messages[error.code] || 'An unknown location error occurred.');
+        },
+        { timeout: 10000, maximumAge: 60000, enableHighAccuracy: true }
+      );
+    }
     function logout() {
       currentUser = null;
       currentPet = null;
