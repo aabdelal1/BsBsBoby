@@ -100,227 +100,30 @@ const upload = multer({
     })
 });
 
-// --- ROUTES ---
+// --- ROUTERS ---
+const authRoutes = require('./routes/auth')(mlPipeline, USERS_CSV, PETS_CSV, userHeaders, breedMap);
+const userRoutes = require('./routes/users')(mlPipeline, USERS_CSV, userHeaders, breedMap);
+const petRoutes = require('./routes/pets')(mlPipeline, PETS_CSV, petHeaders, DB_DIR);
+const breedRoutes = require('./routes/breeds')(mlPipeline, DB_DIR);
+const adminRoutes = require('./routes/admin')(mlPipeline, PETS_CSV, petHeaders, INTERACTIONS_CSV, breedMap);
+const interactionRoutes = require('./routes/interactions')(mlPipeline, INTERACTIONS_CSV, interactionHeaders, MESSAGES_CSV, messageHeaders);
+const messageRoutes = require('./routes/messages')(mlPipeline, MESSAGES_CSV, messageHeaders);
+const chatRoutes = require('./routes/chats')(mlPipeline, CHAT_CSV, chatHeaders);
 
-app.post('/api/signup', async (req, res) => {
-    try {
-        const { username, email, phone, location, password } = req.body;
-        if (!username || !email || !phone || !location || !password) return res.status(400).json({ error: 'All fields are mandatory' });
+// --- MOUNT ROUTES ---
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/pets', petRoutes);
+app.use('/api/breeds', breedRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/interactions', interactionRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/chats', chatRoutes);
 
-        const users = await mlPipeline.readCsv(USERS_CSV);
-        if (users.find(u => u.username === username)) return res.status(400).json({ error: 'Username already exists' });
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-        users.push({ username, email, phone, location, password: hashedPassword, fullName: '', photoPath: '' });
-        await mlPipeline.writeCsv(USERS_CSV, userHeaders, users);
-        
-        res.status(201).json({ success: true, message: 'User created' });
-    } catch (err) { res.status(500).json({ error: 'Server error' }); }
-});
-
-app.post('/api/login', async (req, res) => {
-    try {
-        const { username, password } = req.body;
-        const users = await mlPipeline.readCsv(USERS_CSV);
-        const user = users.find(u => u.username === username);
-
-        if (!user || !(await bcrypt.compare(password, user.password))) return res.status(401).json({ error: 'Invalid username or password' });
-
-        const pets = await mlPipeline.readCsv(PETS_CSV);
-        let pet = pets.find(p => p.username === username) || null;
-        if (pet) pet = { ...pet, breed: breedMap[pet.breed] || pet.breed };
-        
-        res.json({ success: true, message: 'Login successful', user: { username: user.username, email: user.email, phone: user.phone, location: user.location, fullName: user.fullName, photoPath: user.photoPath }, pet });
-    } catch (err) { res.status(500).json({ error: 'Server error' }); }
-});
-
-app.put('/api/user/:username', async (req, res) => {
-    try {
-        const username = req.params.username;
-        const { phone, location, fullName, photoPath } = req.body;
-        let users = await mlPipeline.readCsv(USERS_CSV);
-        let userIndex = users.findIndex(u => u.username === username);
-
-        if (userIndex === -1) return res.status(404).json({ error: 'User not found' });
-
-        if (phone !== undefined) users[userIndex].phone = phone;
-        if (location !== undefined) users[userIndex].location = location;
-        if (fullName !== undefined) users[userIndex].fullName = fullName;
-        if (photoPath !== undefined) users[userIndex].photoPath = photoPath;
-
-        await mlPipeline.writeCsv(USERS_CSV, userHeaders, users);
-        res.json({ success: true, message: 'Profile updated' });
-    } catch (err) { res.status(500).json({ error: 'Server error' }); }
-});
-
-app.post('/api/pet', async (req, res) => {
-    try {
-        const { username, petName, type, gender, birthYear, vaccination, breed, length, weight, color, personality, photoPath } = req.body;
-        if (!username) return res.status(400).json({ error: 'Username is required' });
-
-        let pets = await mlPipeline.readCsv(PETS_CSV);
-        let petIndex = pets.findIndex(p => p.username === username);
-
-        const newPetData = mlPipeline.preprocess({
-            username, petName: petName || '', type: type || '', gender: gender || '',
-            birthYear: birthYear || '', vaccination: vaccination || '', breed: breed || '',
-            length: length || '', weight: weight || '', color: color || '',
-            personality: personality || '', photoPath: photoPath || ''
-        });
-
-        const isAnomaly = mlPipeline.gatekeeper(newPetData);
-        newPetData.isFlagged = isAnomaly ? 'true' : 'false';
-        newPetData.clusterGroup = isAnomaly ? '' : mlPipeline.assignToCluster(newPetData);
-
-        if (petIndex > -1) pets[petIndex] = { ...pets[petIndex], ...newPetData };
-        else pets.push(newPetData);
-
-        await mlPipeline.writeCsv(PETS_CSV, petHeaders, pets);
-        
-        if (isAnomaly) return res.json({ success: true, flagged: true, message: 'Account creation pending review' });
-        res.json({ success: true, message: 'Pet profile saved' });
-
-    } catch (err) { console.error("Pet Profile Error:", err); res.status(500).json({ error: 'Server error while saving pet profile' }); }
-});
-
+// File Upload Route (keep simple)
 app.post('/api/upload', upload.single('media'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
     res.json({ success: true, filePath: `/uploads/${req.file.filename}` });
-});
-
-app.get('/api/breeds', async (req, res) => {
-    try {
-        const type = req.query.type;
-        const file = type === 'dog' 
-            ? path.join(__dirname, 'DB', 'updated_dog_breeds.csv') 
-            : path.join(__dirname, 'DB', 'updated_cat_breeds.csv');
-            
-        const breeds = await mlPipeline.readCsv(file);
-        const breedData = breeds.map(b => ({ id: b.breed_id, name: b.Name })).filter(b => b.name && b.id);
-        res.json({ success: true, breeds: breedData });
-    } catch (err) { res.status(500).json({ error: 'Server error while fetching breeds' }); }
-});
-
-function sanitizeAgnes(node) {
-    if (!node) return null;
-    return {
-        height: node.height, size: node.size, isLeaf: node.isLeaf,
-        children: node.children ? node.children.map(sanitizeAgnes) : []
-    };
-}
-
-app.get('/api/admin/dashboard', async (req, res) => {
-    try {
-        const pets = await mlPipeline.readCsv(PETS_CSV);
-        const flaggedUsers = pets.filter(p => p.isFlagged === 'true').map(p => ({...p, breed: breedMap[p.breed] || p.breed}));
-        const approvedUsers = pets.filter(p => p.isFlagged !== 'true').map(p => ({...p, breed: breedMap[p.breed] || p.breed}));
-        const interactions = await mlPipeline.readCsv(INTERACTIONS_CSV);
-        
-        const agnesTree = mlPipeline.getAgnesTree();
-        const aprioriRules = mlPipeline.getAprioriRules();
-        
-        res.json({ 
-            success: true, suspicious: flaggedUsers, users: approvedUsers,
-            interactions: interactions, agnes: sanitizeAgnes(agnesTree.tree), optimalK: agnesTree.optimalK, apriori: aprioriRules 
-        });
-    } catch (err) { res.status(500).json({ error: 'Failed to load dashboard data' }); }
-});
-
-app.post('/api/admin/accept', async (req, res) => {
-    try {
-        const { username } = req.body;
-        let pets = await mlPipeline.readCsv(PETS_CSV);
-        const petIndex = pets.findIndex(p => p.username === username);
-        if (petIndex > -1) {
-            pets[petIndex].isFlagged = 'false';
-            pets[petIndex].clusterGroup = mlPipeline.assignToCluster(pets[petIndex]);
-            await mlPipeline.writeCsv(PETS_CSV, petHeaders, pets);
-        }
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: 'Failed to accept user' }); }
-});
-
-app.post('/api/admin/refuse', async (req, res) => {
-    try {
-        const { username } = req.body;
-        let pets = await mlPipeline.readCsv(PETS_CSV);
-        pets = pets.filter(p => p.username !== username);
-        await mlPipeline.writeCsv(PETS_CSV, petHeaders, pets);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: 'Failed to refuse user' }); }
-});
-
-app.get('/api/playdates', async (req, res) => {
-    try {
-        const username = req.query.username;
-        if (!username) return res.status(400).json({ error: 'Username required' });
-        
-        const candidatesRaw = await mlPipeline.getPlaydatesFeed(username);
-        const candidates = candidatesRaw.map(c => ({...c, breed: breedMap[c.breed] || c.breed}));
-        res.json({ success: true, candidates });
-    } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to fetch playdates' }); }
-});
-
-app.post('/api/interactions', async (req, res) => {
-    try {
-        const { username, targetUsername, action } = req.body;
-        let interactions = await mlPipeline.readCsv(INTERACTIONS_CSV);
-        interactions.push({ username, targetUsername, action, timestamp: Date.now() });
-        await mlPipeline.writeCsv(INTERACTIONS_CSV, interactionHeaders, interactions);
-        
-        if (action === 'like') {
-            let messages = await mlPipeline.readCsv(MESSAGES_CSV);
-            const existing = messages.find(m => (m.fromUser === username && m.toUser === targetUsername) || (m.fromUser === targetUsername && m.toUser === username));
-            if (!existing) {
-                messages.push({ fromUser: username, toUser: targetUsername, status: 'pending' });
-                await mlPipeline.writeCsv(MESSAGES_CSV, messageHeaders, messages);
-            }
-        }
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: 'Failed to record interaction' }); }
-});
-
-app.post('/api/messages/accept', async (req, res) => {
-    try {
-        const { fromUser, toUser } = req.body;
-        let messages = await mlPipeline.readCsv(MESSAGES_CSV);
-        const msgIndex = messages.findIndex(m => m.fromUser === fromUser && m.toUser === toUser);
-        if (msgIndex > -1) {
-            messages[msgIndex].status = 'accepted';
-            await mlPipeline.writeCsv(MESSAGES_CSV, messageHeaders, messages);
-        }
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: 'Failed to accept message' }); }
-});
-
-app.get('/api/messages', async (req, res) => {
-    try {
-        const username = req.query.username;
-        if (!username) return res.status(400).json({ error: 'Username required' });
-        let messages = await mlPipeline.readCsv(MESSAGES_CSV);
-        messages = messages.filter(m => m.toUser === username || m.fromUser === username);
-        res.json({ success: true, messages });
-    } catch (err) { res.status(500).json({ error: 'Failed to fetch messages' }); }
-});
-
-app.get('/api/chat', async (req, res) => {
-    try {
-        const { userA, userB } = req.query;
-        if (!userA || !userB) return res.status(400).json({ error: 'Users required' });
-        let chats = await mlPipeline.readCsv(CHAT_CSV);
-        chats = chats.filter(c => (c.fromUser === userA && c.toUser === userB) || (c.fromUser === userB && c.toUser === userA));
-        res.json({ success: true, chats });
-    } catch (err) { res.status(500).json({ error: 'Failed to fetch chat' }); }
-});
-
-app.post('/api/chat', async (req, res) => {
-    try {
-        const { fromUser, toUser, message } = req.body;
-        let chats = await mlPipeline.readCsv(CHAT_CSV);
-        chats.push({ fromUser, toUser, message, timestamp: Date.now() });
-        await mlPipeline.writeCsv(CHAT_CSV, chatHeaders, chats);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: 'Failed to send message' }); }
 });
 
 app.listen(PORT, () => {

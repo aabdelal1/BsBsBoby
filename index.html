@@ -1469,7 +1469,7 @@
       }
 
       try {
-        const response = await fetch('/api/signup', {
+        const response = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, email, phone, location, password })
@@ -1499,7 +1499,7 @@
       }
 
       try {
-        const response = await fetch('/api/login', {
+        const response = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
@@ -1528,7 +1528,7 @@
       }
 
       try {
-        const response = await fetch('/api/forgot-password', {
+        const response = await fetch('/api/auth/forgot-password', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username })
@@ -1625,7 +1625,7 @@
       };
 
       try {
-        const response = await fetch('/api/pet', {
+        const response = await fetch('/api/pets', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(petData)
@@ -1673,7 +1673,7 @@
       };
 
       try {
-        const response = await fetch('/api/user/' + currentUser.username, {
+        const response = await fetch('/api/users/' + currentUser.username, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(userData)
@@ -1769,7 +1769,7 @@
       document.getElementById('playdates-container').innerHTML = '<p style="text-align:center; font-weight:bold;">Loading candidates...</p>';
 
       try {
-        const response = await fetch(`/api/playdates?username=${currentUser.username}`);
+        const response = await fetch(`/api/users/${currentUser.username}/playdates`);
         const data = await response.json();
 
         if (data.success) {
@@ -1892,8 +1892,8 @@
     async function adminAction(action, username) {
       if (!confirm(`Are you sure you want to ${action} user ${username}?`)) return;
       try {
-        await fetch(`/api/admin/${action}`, {
-          method: 'POST',
+        await fetch(`/api/admin/pets/${username}/${action}`, {
+          method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username })
         });
@@ -2001,7 +2001,7 @@
     async function acceptMessage(from, to) {
       try {
         await fetch('/api/messages/accept', {
-          method: 'POST',
+          method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ fromUser: from, toUser: to })
         });
@@ -2188,7 +2188,7 @@
     async function loadChat() {
       if (!currentChatPartner || !currentUser) return;
       try {
-        const response = await fetch(`/api/chat?userA=${currentUser.username}&userB=${currentChatPartner}`);
+        const response = await fetch(`/api/chats?userA=${currentUser.username}&userB=${currentChatPartner}`);
         const data = await response.json();
         if (data.success) {
           const history = document.getElementById('chat-history');
@@ -2217,7 +2217,7 @@
       if (!msg || !currentChatPartner) return;
       input.value = '';
       try {
-        await fetch('/api/chat', {
+        await fetch('/api/chats', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ fromUser: currentUser.username, toUser: currentChatPartner, message: msg })
