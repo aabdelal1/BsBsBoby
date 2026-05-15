@@ -1,37 +1,64 @@
-# Architecture Overview
+# System Architecture in Detail
 
-The Pet Matchmaker application is a lightweight, full-stack JavaScript application designed to provide advanced machine learning recommendations without relying on heavy external database dependencies like PostgreSQL or MongoDB. Instead, it utilizes an in-memory compute architecture backed by persistent CSV storage.
+The Pet Matchmaker application is a lightweight, full-stack JavaScript application designed to provide advanced machine learning recommendations without relying on heavy external database dependencies (like PostgreSQL or MongoDB). Instead, it utilizes an **in-memory compute architecture** backed by persistent CSV storage, allowing for rapid prototyping and deployment.
 
-## System Components
+## 1. Directory Structure & Routing Strategy
 
-### 1. Frontend (`index.html`)
-The frontend is a single-page application (SPA) built purely with HTML, CSS, and Vanilla JavaScript. 
-- **DOM Manipulation:** Uses standard JavaScript to toggle views (e.g., login, dashboard, chat) without full page reloads.
-- **REST Integration:** Communicates with the backend exclusively through `fetch()` API calls to RESTful endpoints.
-- **Data Visualization:** Integrates **Chart.js** to render real-time insights in the Admin Dashboard (Scatter Plots for clusters, Bar Charts for Apriori Rules, and Line Charts for AGNES Merges).
+With the recent RESTful refactoring, the monolithic `server.js` was split into domain-specific modules.
 
-### 2. Backend Server (`server.js` and `routes/`)
-The backend is powered by Node.js and Express. It follows a strictly modular RESTful architecture:
-- `routes/auth.js`: Handles secure user registration and password validation using `bcrypt`.
-- `routes/pets.js`: Manages the core pet profile creation, including triggering the ML gatekeeper and clustering logic.
-- `routes/admin.js`: Exposes data for the administrative dashboard and allows for profile moderation.
-- `routes/interactions.js` & `routes/messages.js` & `routes/chats.js`: Manage the matching, connection, and real-time messaging pipeline.
-- `routes/breeds.js`: Provides lookup tables for dynamic breed auto-completion.
+```javascript
+// server.js (Mounting Routers)
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/pets', petRoutes);
+app.use('/api/admin', adminRoutes);
+// ...
+```
+**Design Decision:** By modularizing the backend, we adhere to the Single Responsibility Principle (SRP). `server.js` now acts solely as the application bootstrap, responsible for initializing the background ML interval and binding the Express middleware. This makes the codebase vastly easier to test and prevents Git merge conflicts when multiple developers work on different features (e.g., one on `admin.js`, another on `pets.js`).
 
-### 3. Machine Learning Pipeline (`ml_pipeline.js`)
-This is the core computational engine of the app. It handles heavy background tasks asynchronously to ensure the REST API remains responsive. (See `ml_pipeline.md` for detailed algorithms).
+## 2. In-Memory ML with CSV Persistence
 
-### 4. Database Storage (`DB/`)
-Data is stored locally using CSV files to maintain simplicity and portability:
-- `users.csv`: Stores hashed user credentials and metadata.
-- `individual_pets.csv`: Stores normalized pet data. Breed names are stored as normalized IDs (e.g., `CAT_001`).
-- `interactions.csv`: Logs all swipes (likes/skips).
-- `messages.csv` & `chat.csv`: Handle match states and dialogue logs.
-- `models/ml_pipeline_state.json`: Maintains the state of the trained ML models across server restarts.
+Because machine learning algorithms (like AGNES and K-Means) require reading the entire dataset to construct their models, performing a database I/O read on every single `/api/playdates` request would be disastrous for performance.
 
-## Data Flow
-1. **Client Request:** User actions (e.g., swiping a pet) trigger a `fetch()` request to the Express server.
-2. **Route Handling:** The Express Router receives the request, validates the payload, and delegates complex operations to the `ml_pipeline`.
-3. **Data Mutation:** The state is updated in memory and atomically written to the respective CSV files.
-4. **Response:** The server returns a structured JSON payload to the client.
-5. **Background Sync:** The `ml_pipeline` periodically awakens (every 5 minutes) to recalculate clusters and matching models based on the new data, saving the resulting state to disk.
+```javascript
+// Background loop in server.js
+mlPipeline.loadStateFromLocal().then(() => {
+    setInterval(runBackgroundTasks, 300000); // 5 minutes
+    setTimeout(runBackgroundTasks, 2000);    // Initial boot
+});
+```
+**Design Decision:** We load the CSV data into memory, and the models are trained asynchronously in the background every 5 minutes. The resulting model states (centroids, dendrograms) are serialized to `DB/models/ml_pipeline_state.json`. When a user requests their feed, the system calculates their matches against the *in-memory* state in milliseconds, completely bypassing disk I/O.
+
+## 3. Frontend Architecture (Vanilla SPA)
+
+The frontend is contained entirely within `index.html`, utilizing standard DOM manipulation.
+
+```javascript
+// Example from index.html
+async function loadPlaydates() {
+  const response = await fetch(`/api/users/${currentUser.username}/playdates`);
+  const data = await response.json();
+  // ... DOM manipulation
+}
+```
+**Design Decision:** We deliberately avoided heavy frameworks (React/Vue) to maintain an extremely lightweight footprint. By making `fetch()` calls to strict RESTful URLs and swapping container visibility (`display: none` to `display: block`), the app behaves like a modern Single Page Application (SPA) without the need for a bundler (Webpack/Vite).
+
+## 4. Normalization and Data Integrity
+
+The system enforces data integrity through lookup maps rather than saving raw strings.
+
+```javascript
+// loading in server.js
+const dogs = await mlPipeline.readCsv(path.join(DB_DIR, 'updated_dog_breeds.csv'));
+dogs.forEach(d => { if(d.breed_id) breedMap[d.breed_id] = d.Name; });
+```
+**Design Decision:** In the `individual_pets.csv`, a user's breed is stored as a normalized key (e.g., `CAT_001` or `DOG_042`) rather than raw user-input text like "Golden Retriever". The server maintains a global `breedMap`. When an endpoint returns user data, it dynamically swaps the `breed_id` back into the human-readable `Name`. This enforces strict case-insensitive validation on the frontend and ensures the machine learning pipeline is analyzing standardized, clean data.
+
+## 5. Security & Authentication
+
+```javascript
+// routes/auth.js
+const hashedPassword = await bcrypt.hash(password, 10);
+users.push({ username, email, password: hashedPassword, ... });
+```
+**Design Decision:** Passwords are never stored in plaintext. We utilize `bcrypt` with a salt round of 10 to hash the passwords before committing them to `users.csv`. Currently, the frontend manages "session state" via a global `currentUser` variable; while this is sufficient for a local application, moving to a production environment would require migrating to JSON Web Tokens (JWT) stored in HttpOnly cookies.
