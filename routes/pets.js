@@ -34,5 +34,30 @@ module.exports = (mlPipeline, PETS_CSV, petHeaders, dbDir) => {
         } catch (err) { console.error("Pet Profile Error:", err); res.status(500).json({ error: 'Server error while saving pet profile' }); }
     });
 
+    router.get('/search', async (req, res) => {
+        try {
+            const query = (req.query.q || '').toLowerCase();
+            const pets = await mlPipeline.readCsv(PETS_CSV);
+            
+            const results = pets.filter(p => 
+                (p.petName || '').toLowerCase().includes(query) ||
+                (p.breed || '').toLowerCase().includes(query) ||
+                (p.type || '').toLowerCase().includes(query)
+            );
+            
+            res.json({ success: true, results });
+        } catch (err) { res.status(500).json({ error: 'Search failed' }); }
+    });
+
+    router.get('/:username', async (req, res) => {
+        try {
+            const username = req.params.username;
+            const pets = await mlPipeline.readCsv(PETS_CSV);
+            const pet = pets.find(p => p.username === username);
+            if (!pet) return res.status(404).json({ error: 'Pet not found' });
+            res.json({ success: true, pet });
+        } catch (err) { res.status(500).json({ error: 'Server error' }); }
+    });
+
     return router;
 };

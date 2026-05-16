@@ -107,7 +107,7 @@ const petRoutes = require('./routes/pets')(mlPipeline, PETS_CSV, petHeaders, DB_
 const breedRoutes = require('./routes/breeds')(mlPipeline, DB_DIR);
 const adminRoutes = require('./routes/admin')(mlPipeline, PETS_CSV, petHeaders, INTERACTIONS_CSV, breedMap);
 const interactionRoutes = require('./routes/interactions')(mlPipeline, INTERACTIONS_CSV, interactionHeaders, MESSAGES_CSV, messageHeaders);
-const messageRoutes = require('./routes/messages')(mlPipeline, MESSAGES_CSV, messageHeaders);
+const messageRoutes = require('./routes/messages')(mlPipeline, MESSAGES_CSV, messageHeaders, USERS_CSV, PETS_CSV);
 const chatRoutes = require('./routes/chats')(mlPipeline, CHAT_CSV, chatHeaders);
 
 // --- MOUNT ROUTES ---
