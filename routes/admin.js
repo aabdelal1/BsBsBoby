@@ -14,13 +14,13 @@ module.exports = (mlPipeline, PETS_CSV, petHeaders, INTERACTIONS_CSV, breedMap) 
     router.get('/dashboard', async (req, res) => {
         try {
             const pets = await mlPipeline.readCsv(PETS_CSV);
-            const flaggedUsers = pets.filter(p => p.isFlagged === 'true').map(p => ({...p, breed: breedMap[p.breed] || p.breed}));
-            const approvedUsers = pets.filter(p => p.isFlagged !== 'true').map(p => ({...p, breed: breedMap[p.breed] || p.breed}));
+            const flaggedUsers = pets.filter(p => p.isFlagged === 'true').map(p => ({ ...p, breed: breedMap[p.breed] || p.breed }));
+            const approvedUsers = pets.filter(p => p.isFlagged !== 'true').map(p => ({ ...p, breed: breedMap[p.breed] || p.breed }));
             const interactions = await mlPipeline.readCsv(INTERACTIONS_CSV);
-            
+
             const agnesTree = mlPipeline.getAgnesTree();
             const rawApriori = mlPipeline.getAprioriRules();
-            
+
             // Format apriori data for the frontend chart
             const aprioriList = [];
             for (const [item, associations] of Object.entries(rawApriori)) {
@@ -28,7 +28,7 @@ module.exports = (mlPipeline, PETS_CSV, petHeaders, INTERACTIONS_CSV, breedMap) 
                     aprioriList.push({ items: [item, assocItem], support: support });
                 }
             }
-            
+
             // Compute KMeans data from the pets list
             const kmeansData = { clusterCounts: {}, total: 0 };
             pets.forEach(p => {
@@ -38,10 +38,10 @@ module.exports = (mlPipeline, PETS_CSV, petHeaders, INTERACTIONS_CSV, breedMap) 
                 }
             });
 
-            res.json({ 
+            res.json({
                 success: true, suspicious: flaggedUsers, users: approvedUsers,
-                interactions: interactions, agnes: sanitizeAgnes(agnesTree.tree), optimalK: agnesTree.optimalK, 
-                apriori: aprioriList, kmeans: kmeansData 
+                interactions: interactions, agnes: sanitizeAgnes(agnesTree.tree), optimalK: agnesTree.optimalK,
+                apriori: aprioriList, kmeans: kmeansData
             });
         } catch (err) { res.status(500).json({ error: 'Failed to load dashboard data' }); }
     });

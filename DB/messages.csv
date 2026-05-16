@@ -1,6 +1,6 @@
 fromUser,toUser,status
 1234,wren1711,pending
-1234,wadood,pending
+1234,wadood,accepted
 123,wren1711,pending
 123,n,accepted
 n,1234,pending
@@ -19,3 +19,6 @@ aaa,wren1711,pending
 aaa,123,pending
 aaa,nn,pending
 aaa,n,pending
+wadood,the_guy,pending
+wadood,aaaaa,pending
+wadood,nnnnn,pending

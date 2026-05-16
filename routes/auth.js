@@ -28,11 +28,16 @@ module.exports = (mlPipeline, USERS_CSV, PETS_CSV, userHeaders, breedMap) => {
 
             if (!user || !(await bcrypt.compare(password, user.password))) return res.status(401).json({ error: 'Invalid username or password' });
 
-            const pets = await mlPipeline.readCsv(PETS_CSV);
-            let pet = pets.find(p => p.username === username) || null;
-            if (pet) pet = { ...pet, breed: breedMap[pet.breed] || pet.breed };
-            
-            res.json({ success: true, message: 'Login successful', user: { username: user.username, email: user.email, phone: user.phone, location: user.location, fullName: user.fullName, photoPath: user.photoPath }, pet });
+            const isAdmin = username === 'admin';
+
+            let pet = null;
+            if (!isAdmin) {
+                const pets = await mlPipeline.readCsv(PETS_CSV);
+                const found = pets.find(p => p.username === username);
+                if (found) pet = { ...found, breed: breedMap[found.breed] || found.breed };
+            }
+
+            res.json({ success: true, message: 'Login successful', isAdmin, user: { username: user.username, email: user.email, phone: user.phone, location: user.location, fullName: user.fullName, photoPath: user.photoPath }, pet });
         } catch (err) { res.status(500).json({ error: 'Server error' }); }
     });
 
