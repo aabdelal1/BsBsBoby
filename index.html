@@ -42,7 +42,8 @@
       -webkit-user-select: none;
     }
 
-    input, textarea {
+    input,
+    textarea {
       user-select: text !important;
       -webkit-user-select: text !important;
     }
@@ -806,8 +807,9 @@
       transition: all 0.2s;
       color: white;
       font-weight: 600;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
+
     .recommendation-pill:hover {
       background: var(--pink);
       transform: translateY(-2px);
@@ -870,8 +872,15 @@
     }
 
     @keyframes floatUp {
-      0% { transform: translateY(100vh) rotate(0deg); opacity: 1; }
-      100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+      0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+      }
     }
 
     .help-icon {
@@ -914,8 +923,11 @@
           <h1 class="manifesto-title">Why We Exist?</h1>
           <p class="manifesto-text">
             We created this app because a <strong>lonely pet is a frustrated pet!</strong><br><br>
-            When cats and dogs don’t mate, their raging hormones can lead to serious health risks like life-threatening infections, cancers, and severe behavioral stress.<br><br>
-            Our app tackles this head-on by connecting pet parents safely. Whether you are looking for a responsible breeding match or just an active playmate, we are here to keep your furry friends <strong>healthy, happy, and loved.</strong><br><br>
+            When cats and dogs don’t mate, their raging hormones can lead to serious health risks like life-threatening
+            infections, cancers, and severe behavioral stress.<br><br>
+            Our app tackles this head-on by connecting pet parents safely. Whether you are looking for a responsible
+            breeding match or just an active playmate, we are here to keep your furry friends <strong>healthy, happy,
+              and loved.</strong><br><br>
             Because a well-matched pet is a healthy pet!
           </p>
           <button class="btn" onclick="goBackFromManifesto()">Back to App 🐾</button>
@@ -1025,7 +1037,8 @@
             src="data:image/jpeg;base64,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"
             alt="sad cat" class="status-img" />
           <p class="status-text error">Account Pending Review</p>
-          <p class="status-sub" style="margin-top: 20px;">Your account is being created please wait 3-7 working days for our team to review it.</p>
+          <p class="status-sub" style="margin-top: 20px;">Your account is being created please wait 3-7 working days for
+            our team to review it.</p>
           <button class="btn btn-auto" onclick="logout()">
             🚪 Log Out
           </button>
@@ -1038,7 +1051,8 @@
           <div class="blocked-icon">🚫</div>
           <h2 class="status-text error blocked-title">Your account was blocked</h2>
           <p class="status-sub status-sub-dark">
-            The administrator has reviewed and rejected your account registration. Access to the application has been suspended.
+            The administrator has reviewed and rejected your account registration. Access to the application has been
+            suspended.
           </p>
           <button class="btn btn-auto" onclick="logout()">
             🚪 Log Out
@@ -1105,8 +1119,9 @@
             <input class="input-field" id="pet-birth" type="text" placeholder="birth year" />
             <textarea class="textarea-field" id="pet-vaccination" placeholder="vaccination history"></textarea>
             <div style="display: flex; gap: 8px; align-items: center; width: 100%; margin-bottom: 12px;">
-              <input class="input-field" id="pet-breed" list="breed-list" type="text" placeholder="Breed name" style="flex: 1; margin-bottom: 0;" />
-              <button type="button" class="btn" id="btn-breed-help" onclick="openBreedHelpPopup()" 
+              <input class="input-field" id="pet-breed" list="breed-list" type="text" placeholder="Breed name"
+                style="flex: 1; margin-bottom: 0;" />
+              <button type="button" class="btn" id="btn-breed-help" onclick="openBreedHelpPopup()"
                 style="width: 44px; height: 44px; margin: 0; padding: 0; font-size: 1.2rem; font-family: var(--font-head); background: #4fc3f7; border-radius: 12px; box-shadow: 2px 2px 0 var(--black); border: 2px solid var(--black); cursor: pointer; color: var(--black); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">❓</button>
             </div>
             <datalist id="breed-list"></datalist>
@@ -1166,7 +1181,9 @@
             </svg>
           </div>
           <div class="nav-icon" onclick="showScreen('screen-messages')">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><polygon points="2,26 26,14 2,2 2,12 18,14 2,16" fill="#f0e070" stroke="#e8b800" stroke-width="1" /></svg>
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <polygon points="2,26 26,14 2,2 2,12 18,14 2,16" fill="#f0e070" stroke="#e8b800" stroke-width="1" />
+            </svg>
           </div>
         </div>
       </div>
@@ -1190,7 +1207,8 @@
           <p class="email-text" id="user-profile-email">User@gmail.com</p>
           <input class="input-field" id="user-profile-phone" type="tel" placeholder="phone number" />
           <div class="location-wrapper">
-            <textarea class="textarea-field" id="user-profile-location" placeholder="location (City, Country)"></textarea>
+            <textarea class="textarea-field" id="user-profile-location"
+              placeholder="location (City, Country)"></textarea>
             <button class="btn-location" id="profile-location-btn" title="Use my location"
               onclick="getLocation('user-profile-location', 'profile-location-btn')">📍</button>
           </div>
@@ -1211,7 +1229,9 @@
             </svg>
           </div>
           <div class="nav-icon" onclick="showScreen('screen-messages')">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><polygon points="2,26 26,14 2,2 2,12 18,14 2,16" fill="#f0e070" stroke="#e8b800" stroke-width="1" /></svg>
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <polygon points="2,26 26,14 2,2 2,12 18,14 2,16" fill="#f0e070" stroke="#e8b800" stroke-width="1" />
+            </svg>
           </div>
         </div>
       </div>
@@ -1233,19 +1253,21 @@
           <h2 class="pet-title" style="text-align:center; margin-bottom:6px;">Explore</h2>
           <p style="text-align:center; color:#aaa; font-size:0.85rem; margin-bottom:24px;">Discover pets near you</p>
           <div style="position:relative; margin: 0 16px 20px;">
-            <input type="text" id="explore-search-input" class="input-field" placeholder="🔍 Search pets by name, breed, or type..." 
-              style="padding-left:14px; border-radius:20px; background:rgba(255,255,255,0.08);"
-              onkeyup="searchPets()">
+            <input type="text" id="explore-search-input" class="input-field"
+              placeholder="🔍 Search pets by name, breed, or type..."
+              style="padding-left:14px; border-radius:20px; background:rgba(255,255,255,0.08);" onkeyup="searchPets()">
           </div>
-          
+
           <div id="explore-results-container" style="flex:1; overflow-y:auto; padding:0 16px;">
-            <div style="display:flex; flex-direction:column; align-items:center; margin-top:40px; gap:12px; opacity:0.55;">
+            <div
+              style="display:flex; flex-direction:column; align-items:center; margin-top:40px; gap:12px; opacity:0.55;">
               <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-                <circle cx="28" cy="28" r="20" stroke="white" stroke-width="4"/>
-                <line x1="42" y1="42" x2="58" y2="58" stroke="white" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="28" cy="28" r="20" stroke="white" stroke-width="4" />
+                <line x1="42" y1="42" x2="58" y2="58" stroke="white" stroke-width="4" stroke-linecap="round" />
               </svg>
               <p style="color:white; font-size:1rem; font-weight:600;">Explore Pets</p>
-              <p style="color:#bbb; font-size:0.82rem; text-align:center; max-width:220px;">Type above to search for your favorite breeds or pet names.</p>
+              <p style="color:#bbb; font-size:0.82rem; text-align:center; max-width:220px;">Type above to search for
+                your favorite breeds or pet names.</p>
             </div>
           </div>
         </div>
@@ -1307,7 +1329,9 @@
             </svg>
           </div>
           <div class="nav-icon" onclick="showScreen('screen-messages')">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><polygon points="2,26 26,14 2,2 2,12 18,14 2,16" fill="#f0e070" stroke="#e8b800" stroke-width="1" /></svg>
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <polygon points="2,26 26,14 2,2 2,12 18,14 2,16" fill="#f0e070" stroke="#e8b800" stroke-width="1" />
+            </svg>
           </div>
         </div>
       </div>
@@ -1344,7 +1368,9 @@
             </svg>
           </div>
           <div class="nav-icon" onclick="showScreen('screen-messages')">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><polygon points="2,26 26,14 2,2 2,12 18,14 2,16" fill="#f0e070" stroke="#e8b800" stroke-width="1" /></svg>
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <polygon points="2,26 26,14 2,2 2,12 18,14 2,16" fill="#f0e070" stroke="#e8b800" stroke-width="1" />
+            </svg>
           </div>
         </div>
       </div>
@@ -1383,7 +1409,7 @@
         </div>
         <div class="profile-body" style="align-items: center; padding-top:10px; overflow-y:auto;">
           <h2 class="pet-title" style="text-align:center;">Match Details</h2>
-          
+
           <div id="match-detail-content" style="width:100%;">
             <!-- Loading or Content -->
             <p style="text-align:center;">Loading details...</p>
@@ -1393,9 +1419,14 @@
 
       <!-- SCREEN: ADMIN DASHBOARD -->
       <div class="screen" id="screen-admin">
-        <div class="pet-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 15px 20px; box-sizing: border-box; background: rgba(0,0,0,0.03); border-bottom: 3px solid var(--black); flex-shrink: 0;">
-          <button class="btn" onclick="loadAdminDashboard()" style="width: auto; margin: 0; padding: 6px 14px; font-size: 0.82rem; font-family: var(--font-head); background: #4fc3f7; border-radius: 12px; box-shadow: 2px 2px 0 var(--black); border: 2px solid var(--black); cursor: pointer; color: var(--black); letter-spacing: 0.04em;">🔄 Refresh</button>
-          <button class="btn" onclick="logout()" style="width: auto; margin: 0; padding: 6px 14px; font-size: 0.82rem; font-family: var(--font-head); background: var(--pink); border-radius: 12px; box-shadow: 2px 2px 0 var(--black); border: 2px solid var(--black); cursor: pointer; color: var(--white); letter-spacing: 0.04em;">🚪 Log Out</button>
+        <div class="pet-header"
+          style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 15px 20px; box-sizing: border-box; background: rgba(0,0,0,0.03); border-bottom: 3px solid var(--black); flex-shrink: 0;">
+          <button class="btn" onclick="loadAdminDashboard()"
+            style="width: auto; margin: 0; padding: 6px 14px; font-size: 0.82rem; font-family: var(--font-head); background: #4fc3f7; border-radius: 12px; box-shadow: 2px 2px 0 var(--black); border: 2px solid var(--black); cursor: pointer; color: var(--black); letter-spacing: 0.04em;">🔄
+            Refresh</button>
+          <button class="btn" onclick="logout()"
+            style="width: auto; margin: 0; padding: 6px 14px; font-size: 0.82rem; font-family: var(--font-head); background: var(--pink); border-radius: 12px; box-shadow: 2px 2px 0 var(--black); border: 2px solid var(--black); cursor: pointer; color: var(--white); letter-spacing: 0.04em;">🚪
+            Log Out</button>
         </div>
         <div class="profile-body" style="align-items: stretch; padding-top:0;">
           <h2 class="pet-title" style="text-align:center;">Admin Analytics</h2>
@@ -1475,38 +1506,48 @@
       </div>
 
       <!-- MODAL POPUP: BREED CLASSIFIER EXPERIMENTAL FEATURE -->
-      <div id="modal-breed-classifier" class="modal" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
-        <div class="profile-body" style="background: var(--white); border: 3px solid var(--black); box-shadow: 6px 6px 0 var(--black); border-radius: 20px; width: 100%; max-height: 90%; overflow-y: auto; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; position: relative;">
-          
+      <div id="modal-breed-classifier" class="modal"
+        style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
+        <div class="profile-body"
+          style="background: var(--white); border: 3px solid var(--black); box-shadow: 6px 6px 0 var(--black); border-radius: 20px; width: 100%; max-height: 90%; overflow-y: auto; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; position: relative;">
+
           <!-- Close Button -->
-          <button onclick="closeBreedHelpPopup()" style="position: absolute; top: 12px; right: 12px; background: var(--pink); border: 2px solid var(--black); box-shadow: 2px 2px 0 var(--black); color: var(--white); border-radius: 50%; width: 30px; height: 30px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;">X</button>
-          
+          <button onclick="closeBreedHelpPopup()"
+            style="position: absolute; top: 12px; right: 12px; background: var(--pink); border: 2px solid var(--black); box-shadow: 2px 2px 0 var(--black); color: var(--white); border-radius: 50%; width: 30px; height: 30px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;">X</button>
+
           <h2 class="pet-title" style="text-align: center; margin-top: 10px; font-size: 1.5rem;">Breed Predictor</h2>
-          
+
           <p style="font-size: 0.9rem; color: var(--black); line-height: 1.4; margin-bottom: 15px; text-align: center;">
-            🧪 <strong>Experimental Feature:</strong> Not sure about your pet's breed? Upload a clear photo of your pet, and our local AI model will try to classify it!
+            🧪 <strong>Experimental Feature:</strong> Not sure about your pet's breed? Upload a clear photo of your pet,
+            and our local AI model will try to classify it!
           </p>
 
           <!-- Upload section -->
-          <div style="background: rgba(0,0,0,0.03); border: 2px dashed var(--black); border-radius: 12px; padding: 15px; text-align: center; margin-bottom: 20px;">
-            <label class="btn" style="display: inline-block; cursor: pointer; width: auto; margin: 0 auto; background: var(--pink); color: var(--white); padding: 8px 16px; font-size: 0.9rem;">
+          <div
+            style="background: rgba(0,0,0,0.03); border: 2px dashed var(--black); border-radius: 12px; padding: 15px; text-align: center; margin-bottom: 20px;">
+            <label class="btn"
+              style="display: inline-block; cursor: pointer; width: auto; margin: 0 auto; background: var(--pink); color: var(--white); padding: 8px 16px; font-size: 0.9rem;">
               📷 Choose Photo
               <input type="file" accept="image/*" style="display: none;" onchange="classifyPetBreed(event)" />
             </label>
-            <div id="classifier-status" style="margin-top: 10px; font-size: 0.85rem; color: #666; font-weight: bold;">No image selected</div>
+            <div id="classifier-status" style="margin-top: 10px; font-size: 0.85rem; color: #666; font-weight: bold;">No
+              image selected</div>
           </div>
-          
+
           <!-- List of supported breeds -->
-          <h3 style="font-family: var(--font-head); font-size: 1.05rem; margin-bottom: 8px; border-bottom: 2px solid var(--black); padding-bottom: 4px;">Supported Breeds (37)</h3>
-          
-          <div style="flex: 1; overflow-y: auto; text-align: left; font-size: 0.82rem; max-height: 180px; background: rgba(0,0,0,0.02); border: 2px solid var(--black); border-radius: 10px; padding: 10px;">
+          <h3
+            style="font-family: var(--font-head); font-size: 1.05rem; margin-bottom: 8px; border-bottom: 2px solid var(--black); padding-bottom: 4px;">
+            Supported Breeds (37)</h3>
+
+          <div
+            style="flex: 1; overflow-y: auto; text-align: left; font-size: 0.82rem; max-height: 180px; background: rgba(0,0,0,0.02); border: 2px solid var(--black); border-radius: 10px; padding: 10px;">
             <p style="font-weight: bold; color: var(--pink); margin-top: 0; margin-bottom: 4px;">🐱 Cats:</p>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 10px;">
               <span>Abyssinian</span><span>Bengal</span><span>Birman</span><span>Bombay</span>
               <span>British Shorthair</span><span>Egyptian Mau</span><span>Maine Coon</span><span>Persian</span>
               <span>Ragdoll</span><span>Russian Blue</span><span>Siamese</span><span>Sphynx</span>
             </div>
-            
+
             <p style="font-weight: bold; color: #4fc3f7; margin-top: 0; margin-bottom: 4px;">🐶 Dogs:</p>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
               <span>American Bulldog</span><span>American Pit Bull</span><span>Basset Hound</span><span>Beagle</span>
@@ -1514,7 +1555,8 @@
               <span>German Shorthaired</span><span>Great Pyrenees</span><span>Havanese</span><span>Japanese Chin</span>
               <span>Keeshond</span><span>Leonberger</span><span>Miniature Pinscher</span><span>Newfoundland</span>
               <span>Pomeranian</span><span>Pug</span><span>Saint Bernard</span><span>Samoyed</span>
-              <span>Scottish Terrier</span><span>Shiba Inu</span><span>Staffordshire Bull</span><span>Wheaten Terrier</span>
+              <span>Scottish Terrier</span><span>Shiba Inu</span><span>Staffordshire Bull</span><span>Wheaten
+                Terrier</span>
               <span>Yorkshire Terrier</span>
             </div>
           </div>
@@ -1840,7 +1882,7 @@
 
         if (data.success) {
           currentUser = data.user;
-          currentPet  = data.pet;
+          currentPet = data.pet;
 
           if (data.isAdmin) {
             // ── Admin: go straight to admin board, skip pet profile setup ──
@@ -2234,6 +2276,8 @@
                   <p><strong>Breed:</strong> ${p.breed}</p>
                   <p><strong>Gender:</strong> ${p.gender}</p>
                   <p><strong>Birth Year:</strong> ${p.birthYear}</p>
+                  <p><strong>Weight:</strong> ${p.weight} kg</p>
+                  <p><strong>Length:</strong> ${p.length} cm</p>
                   <p><strong>Vaccinated:</strong> ${p.vaccination}</p>
                   <p><strong>Personality:</strong> ${p.personality}</p>
                 </div>
@@ -2833,7 +2877,7 @@
     function searchPets() {
       const query = document.getElementById('explore-search-input').value.trim();
       const container = document.getElementById('explore-results-container');
-      
+
       if (!query) {
         container.innerHTML = `
           <div style="margin-top:20px;">
@@ -3084,7 +3128,7 @@
     function renderChartTypes(users) {
       if (typesChart) typesChart.destroy();
       const ctx = document.getElementById('chart-types').getContext('2d');
-      
+
       let catCount = 0, dogCount = 0;
       users.forEach(u => {
         if ((u.type || '').toLowerCase() === 'cat') catCount++;
@@ -3178,11 +3222,11 @@
     async function openChat(otherUser) {
       currentChatPartner = otherUser;
       document.getElementById('chat-partner-title').innerText = 'Chat with ' + otherUser;
-      
+
       // Update partner icon
       const iconContainer = document.getElementById('chat-partner-icon');
       iconContainer.onclick = () => viewMatchDetail(otherUser, 'screen-chat');
-      
+
       try {
         const res = await fetch(`/api/users/${otherUser}`);
         const data = await res.json();
@@ -3272,7 +3316,7 @@
           method: 'POST',
           body: formData
         });
-        
+
         const uploadData = await uploadRes.json();
         if (!uploadData.success) {
           throw new Error(uploadData.error || 'Upload failed');
