@@ -154,10 +154,18 @@ module.exports = (mlPipeline, PETS_CSV, petHeaders, dbDir) => {
             const { spawn } = require('child_process');
             const scriptPath = path.join(process.cwd(), 'classify_onnx.py');
             
-            const pythonProcess = spawn('python', [scriptPath, absolutePath]);
+            const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+            const pythonProcess = spawn(pythonCmd, [scriptPath, absolutePath]);
             
             let stdoutData = '';
             let stderrData = '';
+            
+            pythonProcess.on('error', (err) => {
+                console.error("Failed to start python classifier process:", err);
+                if (!res.headersSent) {
+                    res.status(500).json({ error: 'Failed to start AI classifier', details: err.message });
+                }
+            });
             
             pythonProcess.stdout.on('data', (data) => {
                 stdoutData += data.toString();

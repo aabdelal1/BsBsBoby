@@ -716,6 +716,9 @@ async function runApriori() {
                 resolve(result.itemsets);
             });
         });
+    } else {
+        globalAprioriRules = {};
+        await syncToLocal();
     }
     return [];
 }
