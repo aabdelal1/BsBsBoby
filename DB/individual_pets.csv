@@ -1,146 +1,146 @@
 username,petName,type,gender,birthYear,vaccination,breed,length,weight,color,personality,photoPath,isFlagged,clusterGroup
-adam_el-masry_1,Max,cat,male,2018,fully vaccinated,CAT_001,26,3.5,brown,"calm,touchy",/uploads/Abyssinian_121.jpg,false,2
-layla_salem_2,Luna,cat,female,2019,partially vaccinated,CAT_001,28,4.2,white,"active,sleepy,friendly",/uploads/Abyssinian_122.jpg,false,2
-youssef_shahin_3,Cooper,cat,male,2020,none,CAT_001,30,4.9,black,"active,friendly",/uploads/Abyssinian_123.jpg,false,2
-mariam_osman_4,Daisy,cat,female,2021,fully vaccinated,CAT_001,32,3.5,golden,"friendly,touchy,calm",/uploads/Abyssinian_124.jpg,false,2
-mostafa_zaki_5,Buddy,cat,male,2022,partially vaccinated,CAT_001,34,4.2,grey,"calm,touchy,sleepy",/uploads/Abyssinian_125.jpg,false,1
-yasmin_rashed_6,Sadie,dog,female,2023,none,DOG_030,57,12.0,orange,"active,friendly",/uploads/american_bulldog_122.jpg,false,3
-ahmed_nofal_7,Milo,dog,male,2024,fully vaccinated,DOG_030,42,15.5,brown,"touchy,calm,sleepy",/uploads/american_bulldog_123.jpg,false,3
-salma_shaheen_8,Stella,dog,female,2018,partially vaccinated,DOG_030,45,19.0,white,"active,touchy",/uploads/american_bulldog_124.jpg,false,0
-sherif_el-feky_9,Oliver,dog,male,2019,none,DOG_030,48,22.5,black,"active,friendly",/uploads/american_bulldog_125.jpg,false,0
-maya_el-haddad_10,Maggie,dog,female,2020,fully vaccinated,DOG_030,51,26.0,golden,"sleepy,touchy",/uploads/american_bulldog_126.jpg,false,0
-hussein_el-masry_11,Teddy,dog,male,2021,partially vaccinated,DOG_024,54,12.0,grey,"active,friendly,calm",/uploads/basset_hound_121.jpg,false,3
-sherine_salem_12,Lily,dog,female,2022,none,DOG_024,57,15.5,orange,"calm,touchy,friendly",/uploads/basset_hound_122.jpg,false,3
-mohamed_shahin_13,Duke,dog,male,2023,fully vaccinated,DOG_024,42,19.0,brown,"sleepy,touchy",/uploads/basset_hound_123.jpg,false,3
-nadine_osman_14,Ruby,dog,female,2024,partially vaccinated,DOG_024,45,22.5,white,"active,friendly,calm",/uploads/basset_hound_124.jpg,false,3
-marwan_zaki_15,Simba,dog,male,2018,none,DOG_024,48,26.0,black,"touchy,sleepy",/uploads/basset_hound_125.jpg,false,0
-habiba_rashed_16,Zoe,dog,female,2019,fully vaccinated,DOG_009,51,12.0,golden,"active,friendly",/uploads/beagle_123.jpg,false,0
-ramy_nofal_17,Oscar,dog,male,2020,partially vaccinated,DOG_009,54,15.5,grey,"touchy,sleepy",/uploads/beagle_124.jpg,false,0
-reem_shaheen_18,Penny,dog,female,2021,none,DOG_009,57,19.0,orange,"active,friendly,touchy",/uploads/beagle_125.jpg,false,3
-hany_el-feky_19,Sam,dog,male,2022,fully vaccinated,DOG_009,42,22.5,brown,"active,calm",/uploads/beagle_126.jpg,false,3
-ghada_el-haddad_20,Angel,dog,female,2023,partially vaccinated,DOG_009,45,26.0,white,"touchy,calm,friendly",/uploads/beagle_127.jpg,false,3
-moustafa_el-masry_21,Winston,cat,male,2024,none,CAT_011,26,4.9,black,"active,friendly,calm",/uploads/Bengal_121.jpg,false,1
-heba_salem_22,Ginger,cat,female,2018,fully vaccinated,CAT_011,28,3.5,golden,"touchy,sleepy,calm",/uploads/Bengal_122.jpg,false,2
-hazem_shahin_23,Gizmo,cat,male,2019,partially vaccinated,CAT_011,30,4.2,grey,"active,friendly",/uploads/Bengal_123.jpg,false,2
-radwa_osman_24,Abby,cat,female,2020,none,CAT_011,32,4.9,orange,"calm,active,touchy",/uploads/Bengal_124.jpg,false,2
-wael_zaki_25,Zeus,cat,male,2021,fully vaccinated,CAT_011,34,3.5,brown,"calm,friendly",/uploads/Bengal_125.jpg,false,2
-may_rashed_26,Cleo,cat,female,2022,partially vaccinated,CAT_012,26,4.2,white,"touchy,active",/uploads/Birman_121.jpg,false,1
-ibrahim_nofal_27,Shadow,cat,male,2023,none,CAT_012,28,4.9,black,"calm,friendly",/uploads/Birman_122.jpg,false,1
-mai_shaheen_28,Gracie,cat,female,2024,fully vaccinated,CAT_012,30,3.5,golden,"friendly,calm",/uploads/Birman_123.jpg,false,1
-samy_el-feky_29,Rusty,cat,male,2018,partially vaccinated,CAT_012,32,4.2,grey,"calm,sleepy,friendly",/uploads/Birman_124.jpg,false,2
-rowan_el-haddad_30,Belle,cat,female,2019,none,CAT_012,34,4.9,orange,"active,friendly,calm",/uploads/Birman_125.jpg,false,2
-adam_el-masry_31,Max,cat,male,2020,fully vaccinated,CAT_013,26,3.5,brown,"active,friendly,calm",/uploads/Bombay_121.jpg,false,2
-layla_salem_32,Luna,cat,female,2021,partially vaccinated,CAT_013,28,4.2,white,"active,touchy,friendly",/uploads/Bombay_122.jpg,false,2
-youssef_shahin_33,Cooper,cat,male,2022,none,CAT_013,30,4.9,black,"active,friendly,calm",/uploads/Bombay_123.jpg,false,1
-mariam_osman_34,Daisy,cat,female,2023,fully vaccinated,CAT_013,32,3.5,golden,"touchy,calm",/uploads/Bombay_125.jpg,false,1
-mostafa_zaki_35,Buddy,cat,male,2024,partially vaccinated,CAT_013,34,4.2,grey,"sleepy,touchy,calm",/uploads/Bombay_126.jpg,false,1
-yasmin_rashed_36,Sadie,dog,female,2018,none,DOG_005,57,12.0,orange,"touchy,calm",/uploads/boxer_121.jpg,false,0
-ahmed_nofal_37,Milo,dog,male,2019,fully vaccinated,DOG_005,42,15.5,brown,"friendly,touchy",/uploads/boxer_122.jpg,false,0
-salma_shaheen_38,Stella,dog,female,2020,partially vaccinated,DOG_005,45,19.0,white,"touchy,active,friendly",/uploads/boxer_123.jpg,false,0
-sherif_el-feky_39,Oliver,dog,male,2021,none,DOG_005,48,22.5,black,"friendly,sleepy",/uploads/boxer_124.jpg,false,3
-maya_el-haddad_40,Maggie,dog,female,2022,fully vaccinated,DOG_005,51,26.0,golden,"touchy,calm",/uploads/boxer_125.jpg,false,3
-hussein_el-masry_41,Teddy,cat,male,2023,partially vaccinated,CAT_016,26,4.2,grey,"calm,friendly",/uploads/British_Shorthair_124.jpg,false,1
-sherine_salem_42,Lily,cat,female,2024,none,CAT_016,28,4.9,orange,"active,friendly",/uploads/British_Shorthair_125.jpg,false,1
-mohamed_shahin_43,Duke,cat,male,2018,fully vaccinated,CAT_016,30,3.5,brown,"active,calm,sleepy",/uploads/British_Shorthair_126.jpg,false,2
-nadine_osman_44,Ruby,cat,female,2019,partially vaccinated,CAT_016,32,4.2,white,"calm,active,sleepy",/uploads/British_Shorthair_127.jpg,false,2
-marwan_zaki_45,Simba,cat,male,2020,none,CAT_016,34,4.9,black,"touchy,active",/uploads/British_Shorthair_128.jpg,false,2
-habiba_rashed_46,Zoe,dog,female,2021,fully vaccinated,DOG_031,51,12.0,golden,"active,friendly,calm",/uploads/chihuahua_121.jpg,false,3
-ramy_nofal_47,Oscar,dog,male,2022,partially vaccinated,DOG_031,54,15.5,grey,"active,sleepy",/uploads/chihuahua_122.jpg,false,3
-reem_shaheen_48,Penny,dog,female,2023,none,DOG_031,57,19.0,orange,"active,friendly",/uploads/chihuahua_123.jpg,false,3
-hany_el-feky_49,Sam,dog,male,2024,fully vaccinated,DOG_031,42,22.5,brown,"touchy,calm,friendly",/uploads/chihuahua_124.jpg,false,3
-ghada_el-haddad_50,Angel,dog,female,2018,partially vaccinated,DOG_031,45,26.0,white,"touchy,calm,friendly",/uploads/chihuahua_125.jpg,false,0
-moustafa_el-masry_51,Winston,dog,male,2019,none,DOG_018,48,12.0,black,"calm,touchy,friendly",/uploads/english_cocker_spaniel_121.jpg,false,0
-heba_salem_52,Ginger,dog,female,2020,fully vaccinated,DOG_018,51,15.5,golden,"active,friendly",/uploads/english_cocker_spaniel_122.jpg,false,0
-hazem_shahin_53,Gizmo,dog,male,2021,partially vaccinated,DOG_018,54,19.0,grey,"touchy,friendly",/uploads/english_cocker_spaniel_123.jpg,false,3
-radwa_osman_54,Abby,dog,female,2022,none,DOG_018,57,22.5,orange,"friendly,sleepy,touchy",/uploads/english_cocker_spaniel_124.jpg,false,3
-wael_zaki_55,Zeus,dog,male,2023,fully vaccinated,DOG_018,42,26.0,brown,"sleepy,touchy",/uploads/english_cocker_spaniel_125.jpg,false,3
-may_rashed_56,Cleo,dog,female,2024,partially vaccinated,DOG_019,45,12.0,white,"active,friendly",/uploads/great_pyrenees_121.jpg,false,3
-ibrahim_nofal_57,Shadow,dog,male,2018,none,DOG_019,48,15.5,black,"active,friendly,sleepy",/uploads/great_pyrenees_122.jpg,false,0
-mai_shaheen_58,Gracie,dog,female,2019,fully vaccinated,DOG_019,51,19.0,golden,"active,friendly",/uploads/great_pyrenees_123.jpg,false,0
-samy_el-feky_59,Rusty,dog,male,2020,partially vaccinated,DOG_019,54,22.5,grey,"active,touchy",/uploads/great_pyrenees_124.jpg,false,0
-rowan_el-haddad_60,Belle,dog,female,2021,none,DOG_019,57,26.0,orange,"sleepy,touchy",/uploads/great_pyrenees_125.jpg,false,3
-adam_el-masry_61,Max,dog,male,2022,fully vaccinated,DOG_055,42,12.0,brown,"calm,touchy",/uploads/havanese_121.jpg,false,3
-layla_salem_62,Luna,dog,female,2023,partially vaccinated,DOG_055,45,15.5,white,"calm,active",/uploads/havanese_122.jpg,false,3
-youssef_shahin_63,Cooper,dog,male,2024,none,DOG_055,48,19.0,black,"touchy,sleepy,friendly",/uploads/havanese_123.jpg,false,3
-mariam_osman_64,Daisy,dog,female,2018,fully vaccinated,DOG_055,51,22.5,golden,"sleepy,calm,touchy",/uploads/havanese_124.jpg,false,0
-mostafa_zaki_65,Buddy,dog,male,2019,partially vaccinated,DOG_055,54,26.0,grey,"touchy,friendly,active",/uploads/havanese_125.jpg,false,0
-yasmin_rashed_66,Sadie,dog,female,2020,none,DOG_056,57,12.0,orange,"sleepy,active,touchy",/uploads/japanese_chin_121.jpg,false,0
-ahmed_nofal_67,Milo,dog,male,2021,fully vaccinated,DOG_056,42,15.5,brown,"calm,friendly",/uploads/japanese_chin_122.jpg,false,3
-salma_shaheen_68,Stella,dog,female,2022,partially vaccinated,DOG_056,45,19.0,white,"calm,friendly,touchy",/uploads/japanese_chin_123.jpg,false,3
-sherif_el-feky_69,Oliver,dog,male,2023,none,DOG_056,48,22.5,black,"calm,touchy,friendly",/uploads/japanese_chin_124.jpg,false,3
-maya_el-haddad_70,Maggie,dog,female,2024,fully vaccinated,DOG_056,51,26.0,golden,"touchy,calm",/uploads/japanese_chin_125.jpg,false,3
-hussein_el-masry_71,Teddy,dog,male,2018,partially vaccinated,DOG_057,54,12.0,grey,"sleepy,active",/uploads/keeshond_121.jpg,false,0
-sherine_salem_72,Lily,dog,female,2019,none,DOG_057,57,15.5,orange,"calm,friendly,sleepy",/uploads/keeshond_122.jpg,false,0
-mohamed_shahin_73,Duke,dog,male,2020,fully vaccinated,DOG_057,42,19.0,brown,"friendly,sleepy,touchy",/uploads/keeshond_123.jpg,false,0
-nadine_osman_74,Ruby,dog,female,2021,partially vaccinated,DOG_057,45,22.5,white,"sleepy,calm",/uploads/keeshond_124.jpg,false,3
-marwan_zaki_75,Simba,dog,male,2022,none,DOG_057,48,26.0,black,"active,sleepy,touchy",/uploads/keeshond_125.jpg,false,3
-habiba_rashed_76,Zoe,cat,female,2023,fully vaccinated,CAT_036,26,3.5,golden,"touchy,sleepy",/uploads/Maine_Coon_129.jpg,false,1
-ramy_nofal_77,Oscar,cat,male,2024,partially vaccinated,CAT_036,28,4.2,grey,"sleepy,touchy",/uploads/Maine_Coon_13.jpg,false,1
-reem_shaheen_78,Penny,cat,female,2018,none,CAT_036,30,4.9,orange,"active,touchy,calm",/uploads/Maine_Coon_131.jpg,false,2
-hany_el-feky_79,Sam,cat,male,2019,fully vaccinated,CAT_036,32,3.5,brown,"touchy,sleepy",/uploads/Maine_Coon_132.jpg,false,2
-ghada_el-haddad_80,Angel,cat,female,2020,partially vaccinated,CAT_036,34,4.2,white,"active,friendly",/uploads/Maine_Coon_133.jpg,false,2
-moustafa_el-masry_81,Winston,dog,male,2021,none,DOG_090,48,12.0,black,"active,friendly,calm",/uploads/miniature_pinscher_121.jpg,false,3
-heba_salem_82,Ginger,dog,female,2022,fully vaccinated,DOG_090,51,15.5,golden,"sleepy,calm,touchy",/uploads/miniature_pinscher_122.jpg,false,3
-hazem_shahin_83,Gizmo,dog,male,2023,partially vaccinated,DOG_090,54,19.0,grey,"active,friendly,sleepy",/uploads/miniature_pinscher_123.jpg,false,3
-radwa_osman_84,Abby,dog,female,2024,none,DOG_090,57,22.5,orange,"sleepy,friendly,calm",/uploads/miniature_pinscher_124.jpg,false,3
-wael_zaki_85,Zeus,dog,male,2018,fully vaccinated,DOG_090,42,26.0,brown,"touchy,calm",/uploads/miniature_pinscher_125.jpg,false,0
-may_rashed_86,Cleo,dog,female,2019,partially vaccinated,DOG_023,45,12.0,white,"active,friendly,calm",/uploads/newfoundland_121.jpg,false,0
-ibrahim_nofal_87,Shadow,dog,male,2020,none,DOG_023,48,15.5,black,"friendly,active,touchy",/uploads/newfoundland_122.jpg,false,0
-mai_shaheen_88,Gracie,dog,female,2021,fully vaccinated,DOG_023,51,19.0,golden,"active,touchy,sleepy",/uploads/newfoundland_123.jpg,false,3
-samy_el-feky_89,Rusty,dog,male,2022,partially vaccinated,DOG_023,54,22.5,grey,"active,touchy",/uploads/newfoundland_124.jpg,false,3
-rowan_el-haddad_90,Belle,dog,female,2023,none,DOG_023,57,26.0,orange,"friendly,calm,touchy",/uploads/newfoundland_125.jpg,false,3
-adam_el-masry_91,Max,cat,male,2024,fully vaccinated,CAT_041,26,3.5,brown,"calm,friendly,active",/uploads/Persian_126.jpg,false,1
-layla_salem_92,Luna,cat,female,2018,partially vaccinated,CAT_041,28,4.2,white,"touchy,calm,sleepy",/uploads/Persian_128.jpg,false,2
-youssef_shahin_93,Cooper,cat,male,2019,none,CAT_041,30,4.9,black,"calm,friendly",/uploads/Persian_129.jpg,false,2
-mariam_osman_94,Daisy,cat,female,2020,fully vaccinated,CAT_041,32,3.5,golden,"calm,friendly",/uploads/Persian_13.jpg,false,2
-mostafa_zaki_95,Buddy,cat,male,2021,partially vaccinated,CAT_041,34,4.2,grey,"active,friendly",/uploads/Persian_131.jpg,false,2
-yasmin_rashed_96,Sadie,dog,female,2022,none,DOG_013,57,12.0,orange,"calm,sleepy,friendly",/uploads/pomeranian_121.jpg,false,3
-ahmed_nofal_97,Milo,dog,male,2023,fully vaccinated,DOG_013,42,15.5,brown,"touchy,calm",/uploads/pomeranian_122.jpg,false,3
-salma_shaheen_98,Stella,dog,female,2024,partially vaccinated,DOG_013,45,19.0,white,"calm,friendly,active",/uploads/pomeranian_123.jpg,false,3
-sherif_el-feky_99,Oliver,dog,male,2018,none,DOG_013,48,22.5,black,"touchy,calm",/uploads/pomeranian_124.jpg,false,0
-maya_el-haddad_100,Maggie,dog,female,2019,fully vaccinated,DOG_013,51,26.0,golden,"sleepy,touchy,active",/uploads/pomeranian_125.jpg,false,0
-hussein_el-masry_101,Teddy,dog,male,2020,partially vaccinated,DOG_026,54,12.0,grey,"active,calm,friendly",/uploads/pug_122.jpg,false,0
-sherine_salem_102,Lily,dog,female,2021,none,DOG_026,57,15.5,orange,"active,friendly,calm",/uploads/pug_123.jpg,false,3
-mohamed_shahin_103,Duke,dog,male,2022,fully vaccinated,DOG_026,42,19.0,brown,"active,friendly,sleepy",/uploads/pug_124.jpg,false,3
-nadine_osman_104,Ruby,dog,female,2023,partially vaccinated,DOG_026,45,22.5,white,"touchy,active,friendly",/uploads/pug_125.jpg,false,3
-marwan_zaki_105,Simba,dog,male,2024,none,DOG_026,48,26.0,black,"touchy,calm,friendly",/uploads/pug_126.jpg,false,3
-habiba_rashed_106,Zoe,cat,female,2018,fully vaccinated,CAT_044,26,3.5,golden,"touchy,calm",/uploads/Ragdoll_127.jpg,false,2
-ramy_nofal_107,Oscar,cat,male,2019,partially vaccinated,CAT_044,28,4.2,grey,"touchy,active,friendly",/uploads/Ragdoll_128.jpg,false,2
-reem_shaheen_108,Penny,cat,female,2020,none,CAT_044,30,4.9,orange,"friendly,touchy",/uploads/Ragdoll_129.jpg,false,2
-hany_el-feky_109,Sam,cat,male,2021,fully vaccinated,CAT_044,32,3.5,brown,"sleepy,active",/uploads/Ragdoll_13.jpg,false,2
-ghada_el-haddad_110,Angel,cat,female,2022,partially vaccinated,CAT_044,34,4.2,white,"calm,sleepy,touchy",/uploads/Ragdoll_130.jpg,false,1
-moustafa_el-masry_111,Winston,cat,male,2023,none,CAT_045,26,4.9,black,"touchy,calm,friendly",/uploads/Russian_Blue_124.jpg,false,1
-heba_salem_112,Ginger,cat,female,2024,fully vaccinated,CAT_045,28,3.5,golden,"calm,active",/uploads/Russian_Blue_125.jpg,false,1
-hazem_shahin_113,Gizmo,cat,male,2018,partially vaccinated,CAT_045,30,4.2,grey,"touchy,sleepy,calm",/uploads/Russian_Blue_127.jpg,false,2
-radwa_osman_114,Abby,cat,female,2019,none,CAT_045,32,4.9,orange,"touchy,friendly,sleepy",/uploads/Russian_Blue_128.jpg,false,2
-wael_zaki_115,Zeus,cat,male,2020,fully vaccinated,CAT_045,34,3.5,brown,"friendly,calm",/uploads/Russian_Blue_129.jpg,false,2
-may_rashed_116,Cleo,dog,female,2021,partially vaccinated,DOG_076,45,12.0,white,"touchy,active,friendly",/uploads/samoyed_121.jpg,false,3
-ibrahim_nofal_117,Shadow,dog,male,2022,none,DOG_076,48,15.5,black,"active,friendly",/uploads/samoyed_122.jpg,false,3
-mai_shaheen_118,Gracie,dog,female,2023,fully vaccinated,DOG_076,51,19.0,golden,"touchy,calm,friendly",/uploads/samoyed_123.jpg,false,3
-samy_el-feky_119,Rusty,dog,male,2024,partially vaccinated,DOG_076,54,22.5,grey,"friendly,touchy",/uploads/samoyed_124.jpg,false,3
-rowan_el-haddad_120,Belle,dog,female,2018,none,DOG_076,57,26.0,orange,"friendly,touchy,active",/uploads/samoyed_125.jpg,false,0
-adam_el-masry_121,Max,dog,male,2019,fully vaccinated,DOG_043,42,12.0,brown,"active,sleepy,friendly",/uploads/shiba_inu_121.jpg,false,0
-layla_salem_122,Luna,dog,female,2020,partially vaccinated,DOG_043,45,15.5,white,"calm,touchy,sleepy",/uploads/shiba_inu_122.jpg,false,0
-youssef_shahin_123,Cooper,dog,male,2021,none,DOG_043,48,19.0,black,"touchy,calm,friendly",/uploads/shiba_inu_123.jpg,false,3
-mariam_osman_124,Daisy,dog,female,2022,fully vaccinated,DOG_043,51,22.5,golden,"active,touchy,friendly",/uploads/shiba_inu_124.jpg,false,3
-mostafa_zaki_125,Buddy,dog,male,2023,partially vaccinated,DOG_043,54,26.0,grey,"calm,active,sleepy",/uploads/shiba_inu_125.jpg,false,3
-yasmin_rashed_126,Sadie,cat,female,2024,none,CAT_049,26,4.9,orange,"sleepy,touchy",/uploads/Siamese_131.jpg,false,1
-ahmed_nofal_127,Milo,cat,male,2018,fully vaccinated,CAT_049,28,3.5,brown,"sleepy,touchy",/uploads/Siamese_133.jpg,false,2
-salma_shaheen_128,Stella,cat,female,2019,partially vaccinated,CAT_049,30,4.2,white,"active,touchy,friendly",/uploads/Siamese_135.jpg,false,2
-sherif_el-feky_129,Oliver,cat,male,2020,none,CAT_049,32,4.9,black,"friendly,calm,sleepy",/uploads/Siamese_136.jpg,false,2
-maya_el-haddad_130,Maggie,cat,female,2021,fully vaccinated,CAT_049,34,3.5,golden,"touchy,calm,sleepy",/uploads/Siamese_137.jpg,false,2
-hussein_el-masry_131,Teddy,cat,male,2022,partially vaccinated,CAT_055,26,4.2,grey,"active,friendly,calm",/uploads/Sphynx_130.jpg,false,1
-sherine_salem_132,Lily,cat,female,2023,none,CAT_055,28,4.9,orange,"calm,touchy,active",/uploads/Sphynx_131.jpg,false,1
-mohamed_shahin_133,Duke,cat,male,2024,fully vaccinated,CAT_055,30,3.5,brown,"friendly,calm",/uploads/Sphynx_132.jpg,false,1
-nadine_osman_134,Ruby,cat,female,2018,partially vaccinated,CAT_055,32,4.2,white,"touchy,friendly,active",/uploads/Sphynx_133.jpg,false,2
-marwan_zaki_135,Simba,cat,male,2019,none,CAT_055,34,4.9,black,"sleepy,active,calm",/uploads/Sphynx_134.jpg,false,2
-habiba_rashed_136,Zoe,dog,female,2020,fully vaccinated,DOG_092,51,12.0,golden,"active,friendly,calm",/uploads/staffordshire_bull_terrier_121.jpg,false,0
-ramy_nofal_137,Oscar,dog,male,2021,partially vaccinated,DOG_092,54,15.5,grey,"active,friendly",/uploads/staffordshire_bull_terrier_122.jpg,false,3
-reem_shaheen_138,Penny,dog,female,2022,none,DOG_092,57,19.0,orange,"active,friendly,calm",/uploads/staffordshire_bull_terrier_123.jpg,false,3
-hany_el-feky_139,Sam,dog,male,2023,fully vaccinated,DOG_092,42,22.5,brown,"active,friendly,calm",/uploads/staffordshire_bull_terrier_124.jpg,false,3
-ghada_el-haddad_140,Angel,dog,female,2024,partially vaccinated,DOG_092,45,26.0,white,"calm,friendly",/uploads/staffordshire_bull_terrier_125.jpg,false,3
-moustafa_el-masry_141,Winston,dog,male,2018,none,DOG_096,48,12.0,black,"active,touchy",/uploads/yorkshire_terrier_121.jpg,false,0
-heba_salem_142,Ginger,dog,female,2019,fully vaccinated,DOG_096,51,15.5,golden,"calm,active",/uploads/yorkshire_terrier_122.jpg,false,0
-hazem_shahin_143,Gizmo,dog,male,2020,partially vaccinated,DOG_096,54,19.0,grey,"calm,active",/uploads/yorkshire_terrier_123.jpg,false,0
-radwa_osman_144,Abby,dog,female,2021,none,DOG_096,57,22.5,orange,"sleepy,active",/uploads/yorkshire_terrier_124.jpg,false,3
-wael_zaki_145,Zeus,dog,male,2022,fully vaccinated,DOG_096,42,26.0,brown,"active,friendly",/uploads/yorkshire_terrier_125.jpg,false,3
+adam_el-masry_1,Max,cat,male,2018,fully vaccinated,CAT_001,26,3.5,brown,"active,calm",/uploads/Abyssinian_126.jpg,false,3
+layla_salem_2,Luna,cat,female,2019,partially vaccinated,CAT_001,28,4.2,white,"calm,active",/uploads/Abyssinian_127.jpg,false,3
+youssef_shahin_3,Cooper,cat,male,2020,none,CAT_001,30,4.9,black,"sleepy,touchy,calm",/uploads/Abyssinian_128.jpg,false,3
+mariam_osman_4,Daisy,cat,female,2021,fully vaccinated,CAT_001,32,3.5,golden,"friendly,active",/uploads/Abyssinian_129.jpg,false,3
+mostafa_zaki_5,Buddy,cat,male,2022,partially vaccinated,CAT_001,34,4.2,grey,"active,touchy",/uploads/Abyssinian_13.jpg,false,3
+yasmin_rashed_6,Sadie,dog,female,2023,none,DOG_030,57,12.0,orange,"calm,touchy",/uploads/american_bulldog_127.jpg,false,0
+ahmed_nofal_7,Milo,dog,male,2024,fully vaccinated,DOG_030,42,15.5,brown,"sleepy,touchy",/uploads/american_bulldog_128.jpg,false,1
+salma_shaheen_8,Stella,dog,female,2018,partially vaccinated,DOG_030,45,19.0,white,"active,touchy",/uploads/american_bulldog_129.jpg,false,2
+sherif_el-feky_9,Oliver,dog,male,2019,none,DOG_030,48,22.5,black,"friendly,touchy,calm",/uploads/american_bulldog_13.jpg,false,2
+maya_el-haddad_10,Maggie,dog,female,2020,fully vaccinated,DOG_030,51,26.0,golden,"touchy,calm,friendly",/uploads/american_bulldog_130.jpg,false,2
+hussein_el-masry_11,Teddy,dog,male,2021,partially vaccinated,DOG_024,54,12.0,grey,"touchy,active",/uploads/basset_hound_126.jpg,false,0
+sherine_salem_12,Lily,dog,female,2022,none,DOG_024,57,15.5,orange,"sleepy,friendly",/uploads/basset_hound_127.jpg,false,0
+mohamed_shahin_13,Duke,dog,male,2023,fully vaccinated,DOG_024,42,19.0,brown,"active,friendly,calm",/uploads/basset_hound_128.jpg,false,1
+nadine_osman_14,Ruby,dog,female,2024,partially vaccinated,DOG_024,45,22.5,white,"friendly,calm",/uploads/basset_hound_129.jpg,false,1
+marwan_zaki_15,Simba,dog,male,2018,none,DOG_024,48,26.0,black,"friendly,touchy,sleepy",/uploads/basset_hound_13.jpg,false,2
+habiba_rashed_16,Zoe,dog,female,2019,fully vaccinated,DOG_009,51,12.0,golden,"calm,touchy,friendly",/uploads/beagle_128.jpg,false,2
+ramy_nofal_17,Oscar,dog,male,2020,partially vaccinated,DOG_009,54,15.5,grey,"calm,friendly,sleepy",/uploads/beagle_129.jpg,false,0
+reem_shaheen_18,Penny,dog,female,2021,none,DOG_009,57,19.0,orange,"touchy,calm",/uploads/beagle_13.jpg,false,0
+hany_el-feky_19,Sam,dog,male,2022,fully vaccinated,DOG_009,42,22.5,brown,"active,friendly",/uploads/beagle_130.jpg,false,1
+ghada_el-haddad_20,Angel,dog,female,2023,partially vaccinated,DOG_009,45,26.0,white,"calm,friendly",/uploads/beagle_131.jpg,false,1
+moustafa_el-masry_21,Winston,cat,male,2024,none,CAT_011,26,4.9,black,"calm,sleepy,friendly",/uploads/Bengal_126.jpg,false,3
+heba_salem_22,Ginger,cat,female,2018,fully vaccinated,CAT_011,28,3.5,golden,"active,friendly",/uploads/Bengal_127.jpg,false,3
+hazem_shahin_23,Gizmo,cat,male,2019,partially vaccinated,CAT_011,30,4.2,grey,"friendly,touchy",/uploads/Bengal_128.jpg,false,3
+radwa_osman_24,Abby,cat,female,2020,none,CAT_011,32,4.9,orange,"sleepy,touchy,active",/uploads/Bengal_129.jpg,false,3
+wael_zaki_25,Zeus,cat,male,2021,fully vaccinated,CAT_011,34,3.5,brown,"touchy,calm",/uploads/Bengal_13.jpg,false,3
+may_rashed_26,Cleo,cat,female,2022,partially vaccinated,CAT_012,26,4.2,white,"active,sleepy,calm",/uploads/Birman_126.jpg,false,3
+ibrahim_nofal_27,Shadow,cat,male,2023,none,CAT_012,28,4.9,black,"sleepy,touchy,calm",/uploads/Birman_127.jpg,false,3
+mai_shaheen_28,Gracie,cat,female,2024,fully vaccinated,CAT_012,30,3.5,golden,"friendly,touchy,calm",/uploads/Birman_128.jpg,false,3
+samy_el-feky_29,Rusty,cat,male,2018,partially vaccinated,CAT_012,32,4.2,grey,"active,friendly",/uploads/Birman_129.jpg,false,3
+rowan_el-haddad_30,Belle,cat,female,2019,none,CAT_012,34,4.9,orange,"sleepy,touchy",/uploads/Birman_13.jpg,false,3
+adam_el-masry_31,Max,cat,male,2020,fully vaccinated,CAT_013,26,3.5,brown,"active,touchy,sleepy",/uploads/Bombay_127.jpg,false,3
+layla_salem_32,Luna,cat,female,2021,partially vaccinated,CAT_013,28,4.2,white,"active,friendly",/uploads/Bombay_128.jpg,false,3
+youssef_shahin_33,Cooper,cat,male,2022,none,CAT_013,30,4.9,black,"friendly,active",/uploads/Bombay_129.jpg,false,3
+mariam_osman_34,Daisy,cat,female,2023,fully vaccinated,CAT_013,32,3.5,golden,"calm,active,sleepy",/uploads/Bombay_13.jpg,false,3
+mostafa_zaki_35,Buddy,cat,male,2024,partially vaccinated,CAT_013,34,4.2,grey,"active,touchy",/uploads/Bombay_130.jpg,false,3
+yasmin_rashed_36,Sadie,dog,female,2018,none,DOG_005,57,12.0,orange,"friendly,sleepy,touchy",/uploads/boxer_126.jpg,false,2
+ahmed_nofal_37,Milo,dog,male,2019,fully vaccinated,DOG_005,42,15.5,brown,"sleepy,touchy,active",/uploads/boxer_127.jpg,false,2
+salma_shaheen_38,Stella,dog,female,2020,partially vaccinated,DOG_005,45,19.0,white,"calm,touchy",/uploads/boxer_128.jpg,false,2
+sherif_el-feky_39,Oliver,dog,male,2021,none,DOG_005,48,22.5,black,"calm,active",/uploads/boxer_129.jpg,false,0
+maya_el-haddad_40,Maggie,dog,female,2022,fully vaccinated,DOG_005,51,26.0,golden,"calm,sleepy,touchy",/uploads/boxer_13.jpg,false,1
+hussein_el-masry_41,Teddy,cat,male,2023,partially vaccinated,CAT_016,26,4.2,grey,"active,calm",/uploads/British_Shorthair_129.jpg,false,3
+sherine_salem_42,Lily,cat,female,2024,none,CAT_016,28,4.9,orange,"friendly,calm,active",/uploads/British_Shorthair_130.jpg,false,3
+mohamed_shahin_43,Duke,cat,male,2018,fully vaccinated,CAT_016,30,3.5,brown,"calm,touchy,friendly",/uploads/British_Shorthair_133.jpg,false,3
+nadine_osman_44,Ruby,cat,female,2019,partially vaccinated,CAT_016,32,4.2,white,"touchy,active,sleepy",/uploads/British_Shorthair_134.jpg,false,3
+marwan_zaki_45,Simba,cat,male,2020,none,CAT_016,34,4.9,black,"calm,friendly,active",/uploads/British_Shorthair_135.jpg,false,3
+habiba_rashed_46,Zoe,dog,female,2021,fully vaccinated,DOG_031,51,12.0,golden,"active,friendly",/uploads/chihuahua_126.jpg,false,0
+ramy_nofal_47,Oscar,dog,male,2022,partially vaccinated,DOG_031,54,15.5,grey,"sleepy,touchy",/uploads/chihuahua_127.jpg,false,0
+reem_shaheen_48,Penny,dog,female,2023,none,DOG_031,57,19.0,orange,"active,friendly,sleepy",/uploads/chihuahua_128.jpg,false,1
+hany_el-feky_49,Sam,dog,male,2024,fully vaccinated,DOG_031,42,22.5,brown,"active,friendly",/uploads/chihuahua_129.jpg,false,1
+ghada_el-haddad_50,Angel,dog,female,2018,partially vaccinated,DOG_031,45,26.0,white,"sleepy,touchy",/uploads/chihuahua_13.jpg,false,2
+moustafa_el-masry_51,Winston,dog,male,2019,none,DOG_018,48,12.0,black,"active,sleepy",/uploads/english_cocker_spaniel_126.jpg,false,2
+heba_salem_52,Ginger,dog,female,2020,fully vaccinated,DOG_018,51,15.5,golden,"active,friendly",/uploads/english_cocker_spaniel_127.jpg,false,0
+hazem_shahin_53,Gizmo,dog,male,2021,partially vaccinated,DOG_018,54,19.0,grey,"sleepy,touchy,calm",/uploads/english_cocker_spaniel_128.jpg,false,0
+radwa_osman_54,Abby,dog,female,2022,none,DOG_018,57,22.5,orange,"sleepy,friendly",/uploads/english_cocker_spaniel_129.jpg,false,0
+wael_zaki_55,Zeus,dog,male,2023,fully vaccinated,DOG_018,42,26.0,brown,"friendly,sleepy",/uploads/english_cocker_spaniel_13.jpg,false,1
+may_rashed_56,Cleo,dog,female,2024,partially vaccinated,DOG_019,45,12.0,white,"friendly,active",/uploads/great_pyrenees_126.jpg,false,1
+ibrahim_nofal_57,Shadow,dog,male,2018,none,DOG_019,48,15.5,black,"sleepy,active,friendly",/uploads/great_pyrenees_127.jpg,false,2
+mai_shaheen_58,Gracie,dog,female,2019,fully vaccinated,DOG_019,51,19.0,golden,"calm,sleepy",/uploads/great_pyrenees_128.jpg,false,2
+samy_el-feky_59,Rusty,dog,male,2020,partially vaccinated,DOG_019,54,22.5,grey,"sleepy,active",/uploads/great_pyrenees_129.jpg,false,2
+rowan_el-haddad_60,Belle,dog,female,2021,none,DOG_019,57,26.0,orange,"friendly,active",/uploads/great_pyrenees_13.jpg,false,0
+adam_el-masry_61,Max,dog,male,2022,fully vaccinated,DOG_055,42,12.0,brown,"friendly,active,touchy",/uploads/havanese_126.jpg,false,0
+layla_salem_62,Luna,dog,female,2023,partially vaccinated,DOG_055,45,15.5,white,"calm,friendly",/uploads/havanese_127.jpg,false,1
+youssef_shahin_63,Cooper,dog,male,2024,none,DOG_055,48,19.0,black,"active,touchy,friendly",/uploads/havanese_128.jpg,false,1
+mariam_osman_64,Daisy,dog,female,2018,fully vaccinated,DOG_055,51,22.5,golden,"touchy,friendly,calm",/uploads/havanese_129.jpg,false,2
+mostafa_zaki_65,Buddy,dog,male,2019,partially vaccinated,DOG_055,54,26.0,grey,"friendly,calm,active",/uploads/havanese_13.jpg,false,2
+yasmin_rashed_66,Sadie,dog,female,2020,none,DOG_056,57,12.0,orange,"touchy,active",/uploads/japanese_chin_126.jpg,false,0
+ahmed_nofal_67,Milo,dog,male,2021,fully vaccinated,DOG_056,42,15.5,brown,"sleepy,active,friendly",/uploads/japanese_chin_127.jpg,false,0
+salma_shaheen_68,Stella,dog,female,2022,partially vaccinated,DOG_056,45,19.0,white,"touchy,active,friendly",/uploads/japanese_chin_128.jpg,false,1
+sherif_el-feky_69,Oliver,dog,male,2023,none,DOG_056,48,22.5,black,"active,friendly,calm",/uploads/japanese_chin_129.jpg,false,1
+maya_el-haddad_70,Maggie,dog,female,2024,fully vaccinated,DOG_056,51,26.0,golden,"friendly,touchy",/uploads/japanese_chin_13.jpg,false,1
+hussein_el-masry_71,Teddy,dog,male,2018,partially vaccinated,DOG_057,54,12.0,grey,"active,friendly",/uploads/keeshond_126.jpg,false,2
+sherine_salem_72,Lily,dog,female,2019,none,DOG_057,57,15.5,orange,"friendly,calm",/uploads/keeshond_127.jpg,false,2
+mohamed_shahin_73,Duke,dog,male,2020,fully vaccinated,DOG_057,42,19.0,brown,"touchy,sleepy",/uploads/keeshond_128.jpg,false,2
+nadine_osman_74,Ruby,dog,female,2021,partially vaccinated,DOG_057,45,22.5,white,"touchy,calm,friendly",/uploads/keeshond_129.jpg,false,0
+marwan_zaki_75,Simba,dog,male,2022,none,DOG_057,48,26.0,black,"active,touchy,sleepy",/uploads/keeshond_13.jpg,false,1
+habiba_rashed_76,Zoe,cat,female,2023,fully vaccinated,CAT_036,26,3.5,golden,"sleepy,friendly",/uploads/Maine_Coon_134.jpg,false,3
+ramy_nofal_77,Oscar,cat,male,2024,partially vaccinated,CAT_036,28,4.2,grey,"calm,active,friendly",/uploads/Maine_Coon_135.jpg,false,3
+reem_shaheen_78,Penny,cat,female,2018,none,CAT_036,30,4.9,orange,"friendly,calm,sleepy",/uploads/Maine_Coon_136.jpg,false,3
+hany_el-feky_79,Sam,cat,male,2019,fully vaccinated,CAT_036,32,3.5,brown,"friendly,active",/uploads/Maine_Coon_137.jpg,false,3
+ghada_el-haddad_80,Angel,cat,female,2020,partially vaccinated,CAT_036,34,4.2,white,"touchy,sleepy",/uploads/Maine_Coon_138.jpg,false,3
+moustafa_el-masry_81,Winston,dog,male,2021,none,DOG_090,48,12.0,black,"sleepy,touchy,calm",/uploads/miniature_pinscher_126.jpg,false,0
+heba_salem_82,Ginger,dog,female,2022,fully vaccinated,DOG_090,51,15.5,golden,"calm,active,friendly",/uploads/miniature_pinscher_127.jpg,false,0
+hazem_shahin_83,Gizmo,dog,male,2023,partially vaccinated,DOG_090,54,19.0,grey,"touchy,calm,friendly",/uploads/miniature_pinscher_128.jpg,false,1
+radwa_osman_84,Abby,dog,female,2024,none,DOG_090,57,22.5,orange,"sleepy,active,friendly",/uploads/miniature_pinscher_129.jpg,false,1
+wael_zaki_85,Zeus,dog,male,2018,fully vaccinated,DOG_090,42,26.0,brown,"sleepy,active",/uploads/miniature_pinscher_13.jpg,false,2
+may_rashed_86,Cleo,dog,female,2019,partially vaccinated,DOG_023,45,12.0,white,"active,friendly,calm",/uploads/newfoundland_126.jpg,false,2
+ibrahim_nofal_87,Shadow,dog,male,2020,none,DOG_023,48,15.5,black,"friendly,active",/uploads/newfoundland_127.jpg,false,2
+mai_shaheen_88,Gracie,dog,female,2021,fully vaccinated,DOG_023,51,19.0,golden,"calm,sleepy",/uploads/newfoundland_128.jpg,false,0
+samy_el-feky_89,Rusty,dog,male,2022,partially vaccinated,DOG_023,54,22.5,grey,"touchy,sleepy",/uploads/newfoundland_129.jpg,false,0
+rowan_el-haddad_90,Belle,dog,female,2023,none,DOG_023,57,26.0,orange,"active,friendly",/uploads/newfoundland_13.jpg,false,1
+adam_el-masry_91,Max,cat,male,2024,fully vaccinated,CAT_041,26,3.5,brown,"sleepy,calm",/uploads/Persian_132.jpg,false,3
+layla_salem_92,Luna,cat,female,2018,partially vaccinated,CAT_041,28,4.2,white,"sleepy,touchy",/uploads/Persian_133.jpg,false,3
+youssef_shahin_93,Cooper,cat,male,2019,none,CAT_041,30,4.9,black,"sleepy,calm",/uploads/Persian_134.jpg,false,3
+mariam_osman_94,Daisy,cat,female,2020,fully vaccinated,CAT_041,32,3.5,golden,"friendly,touchy,active",/uploads/Persian_135.jpg,false,3
+mostafa_zaki_95,Buddy,cat,male,2021,partially vaccinated,CAT_041,34,4.2,grey,"active,touchy,friendly",/uploads/Persian_136.jpg,false,3
+yasmin_rashed_96,Sadie,dog,female,2022,none,DOG_013,57,12.0,orange,"sleepy,touchy,calm",/uploads/pomeranian_126.jpg,false,0
+ahmed_nofal_97,Milo,dog,male,2023,fully vaccinated,DOG_013,42,15.5,brown,"active,friendly",/uploads/pomeranian_127.jpg,false,1
+salma_shaheen_98,Stella,dog,female,2024,partially vaccinated,DOG_013,45,19.0,white,"calm,sleepy,friendly",/uploads/pomeranian_128.jpg,false,1
+sherif_el-feky_99,Oliver,dog,male,2018,none,DOG_013,48,22.5,black,"calm,touchy,friendly",/uploads/pomeranian_129.jpg,false,2
+maya_el-haddad_100,Maggie,dog,female,2019,fully vaccinated,DOG_013,51,26.0,golden,"active,friendly",/uploads/pomeranian_13.jpg,false,2
+hussein_el-masry_101,Teddy,dog,male,2020,partially vaccinated,DOG_026,54,12.0,grey,"calm,friendly",/uploads/pug_127.jpg,false,0
+sherine_salem_102,Lily,dog,female,2021,none,DOG_026,57,15.5,orange,"active,friendly,calm",/uploads/pug_128.jpg,false,0
+mohamed_shahin_103,Duke,dog,male,2022,fully vaccinated,DOG_026,42,19.0,brown,"touchy,calm,sleepy",/uploads/pug_129.jpg,false,1
+nadine_osman_104,Ruby,dog,female,2023,partially vaccinated,DOG_026,45,22.5,white,"calm,friendly",/uploads/pug_13.jpg,false,1
+marwan_zaki_105,Simba,dog,male,2024,none,DOG_026,48,26.0,black,"touchy,calm,friendly",/uploads/pug_130.jpg,false,1
+habiba_rashed_106,Zoe,cat,female,2018,fully vaccinated,CAT_044,26,3.5,golden,"active,friendly",/uploads/Ragdoll_131.jpg,false,3
+ramy_nofal_107,Oscar,cat,male,2019,partially vaccinated,CAT_044,28,4.2,grey,"friendly,calm",/uploads/Ragdoll_132.jpg,false,3
+reem_shaheen_108,Penny,cat,female,2020,none,CAT_044,30,4.9,orange,"sleepy,active",/uploads/Ragdoll_133.jpg,false,3
+hany_el-feky_109,Sam,cat,male,2021,fully vaccinated,CAT_044,32,3.5,brown,"touchy,friendly",/uploads/Ragdoll_134.jpg,false,3
+ghada_el-haddad_110,Angel,cat,female,2022,partially vaccinated,CAT_044,34,4.2,white,"friendly,active",/uploads/Ragdoll_135.jpg,false,3
+moustafa_el-masry_111,Winston,cat,male,2023,none,CAT_045,26,4.9,black,"calm,friendly",/uploads/Russian_Blue_13.jpg,false,3
+heba_salem_112,Ginger,cat,female,2024,fully vaccinated,CAT_045,28,3.5,golden,"touchy,calm",/uploads/Russian_Blue_130.jpg,false,3
+hazem_shahin_113,Gizmo,cat,male,2018,partially vaccinated,CAT_045,30,4.2,grey,"active,friendly,calm",/uploads/Russian_Blue_131.jpg,false,3
+radwa_osman_114,Abby,cat,female,2019,none,CAT_045,32,4.9,orange,"friendly,sleepy,touchy",/uploads/Russian_Blue_132.jpg,false,3
+wael_zaki_115,Zeus,cat,male,2020,fully vaccinated,CAT_045,34,3.5,brown,"touchy,sleepy",/uploads/Russian_Blue_133.jpg,false,3
+may_rashed_116,Cleo,dog,female,2021,partially vaccinated,DOG_076,45,12.0,white,"friendly,calm,touchy",/uploads/samoyed_126.jpg,false,0
+ibrahim_nofal_117,Shadow,dog,male,2022,none,DOG_076,48,15.5,black,"friendly,calm,touchy",/uploads/samoyed_127.jpg,false,0
+mai_shaheen_118,Gracie,dog,female,2023,fully vaccinated,DOG_076,51,19.0,golden,"sleepy,touchy,calm",/uploads/samoyed_128.jpg,false,1
+samy_el-feky_119,Rusty,dog,male,2024,partially vaccinated,DOG_076,54,22.5,grey,"active,touchy,sleepy",/uploads/samoyed_129.jpg,false,1
+rowan_el-haddad_120,Belle,dog,female,2018,none,DOG_076,57,26.0,orange,"touchy,calm,friendly",/uploads/samoyed_13.jpg,false,2
+adam_el-masry_121,Max,dog,male,2019,fully vaccinated,DOG_043,42,12.0,brown,"sleepy,touchy,calm",/uploads/shiba_inu_126.jpg,false,2
+layla_salem_122,Luna,dog,female,2020,partially vaccinated,DOG_043,45,15.5,white,"touchy,calm,sleepy",/uploads/shiba_inu_127.jpg,false,2
+youssef_shahin_123,Cooper,dog,male,2021,none,DOG_043,48,19.0,black,"active,friendly",/uploads/shiba_inu_128.jpg,false,0
+mariam_osman_124,Daisy,dog,female,2022,fully vaccinated,DOG_043,51,22.5,golden,"friendly,active,sleepy",/uploads/shiba_inu_129.jpg,false,1
+mostafa_zaki_125,Buddy,dog,male,2023,partially vaccinated,DOG_043,54,26.0,grey,"active,touchy,friendly",/uploads/shiba_inu_13.jpg,false,1
+yasmin_rashed_126,Sadie,cat,female,2024,none,CAT_049,26,4.9,orange,"calm,sleepy,touchy",/uploads/Siamese_138.jpg,false,3
+ahmed_nofal_127,Milo,cat,male,2018,fully vaccinated,CAT_049,28,3.5,brown,"active,friendly,sleepy",/uploads/Siamese_139.jpg,false,3
+salma_shaheen_128,Stella,cat,female,2019,partially vaccinated,CAT_049,30,4.2,white,"active,friendly,touchy",/uploads/Siamese_14.jpg,false,3
+sherif_el-feky_129,Oliver,cat,male,2020,none,CAT_049,32,4.9,black,"sleepy,touchy",/uploads/Siamese_140.jpg,false,3
+maya_el-haddad_130,Maggie,cat,female,2021,fully vaccinated,CAT_049,34,3.5,golden,"touchy,calm,friendly",/uploads/Siamese_141.jpg,false,3
+hussein_el-masry_131,Teddy,cat,male,2022,partially vaccinated,CAT_055,26,4.2,grey,"active,friendly",/uploads/Sphynx_136.jpg,false,3
+sherine_salem_132,Lily,cat,female,2023,none,CAT_055,28,4.9,orange,"sleepy,active",/uploads/Sphynx_137.jpg,false,3
+mohamed_shahin_133,Duke,cat,male,2024,fully vaccinated,CAT_055,30,3.5,brown,"active,friendly,calm",/uploads/Sphynx_138.jpg,false,3
+nadine_osman_134,Ruby,cat,female,2018,partially vaccinated,CAT_055,32,4.2,white,"friendly,active,calm",/uploads/Sphynx_139.jpg,false,3
+marwan_zaki_135,Simba,cat,male,2019,none,CAT_055,34,4.9,black,"touchy,calm,friendly",/uploads/Sphynx_14.jpg,false,3
+habiba_rashed_136,Zoe,dog,female,2020,fully vaccinated,DOG_092,51,12.0,golden,"active,sleepy",/uploads/staffordshire_bull_terrier_126.jpg,false,0
+ramy_nofal_137,Oscar,dog,male,2021,partially vaccinated,DOG_092,54,15.5,grey,"sleepy,touchy",/uploads/staffordshire_bull_terrier_127.jpg,false,0
+reem_shaheen_138,Penny,dog,female,2022,none,DOG_092,57,19.0,orange,"calm,touchy,friendly",/uploads/staffordshire_bull_terrier_128.jpg,false,0
+hany_el-feky_139,Sam,dog,male,2023,fully vaccinated,DOG_092,42,22.5,brown,"calm,friendly,sleepy",/uploads/staffordshire_bull_terrier_129.jpg,false,1
+ghada_el-haddad_140,Angel,dog,female,2024,partially vaccinated,DOG_092,45,26.0,white,"active,friendly",/uploads/staffordshire_bull_terrier_13.jpg,false,1
+moustafa_el-masry_141,Winston,dog,male,2018,none,DOG_096,48,12.0,black,"sleepy,touchy,calm",/uploads/yorkshire_terrier_126.jpg,false,2
+heba_salem_142,Ginger,dog,female,2019,fully vaccinated,DOG_096,51,15.5,golden,"active,calm,friendly",/uploads/yorkshire_terrier_127.jpg,false,2
+hazem_shahin_143,Gizmo,dog,male,2020,partially vaccinated,DOG_096,54,19.0,grey,"active,touchy",/uploads/yorkshire_terrier_128.jpg,false,0
+radwa_osman_144,Abby,dog,female,2021,none,DOG_096,57,22.5,orange,"friendly,touchy",/uploads/yorkshire_terrier_129.jpg,false,0
+wael_zaki_145,Zeus,dog,male,2022,fully vaccinated,DOG_096,42,26.0,brown,"active,friendly",/uploads/yorkshire_terrier_13.jpg,false,1
