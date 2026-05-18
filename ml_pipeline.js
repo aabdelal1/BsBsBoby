@@ -58,6 +58,7 @@ let globalScalingParams = { means: [0, 0, 0], stdDevs: [1, 1, 1] }; // Physical 
 let globalOptimalK = 3; // Dynamic count of active physical clusters
 let globalClusterStats = {}; // Stores means and inverse covariance matrices for Mahalanobis distances
 let globalAgnesMap = {}; // Maps pet usernames to behavioral archetype IDs
+let globalElbowWcss = []; // Stores Within-Cluster Sum of Squares for Elbow Chart
 let globalAgnesTreeCache = null; // Caches the full complete-linkage dendrogram tree
 let globalUserSimMatrix = {}; // Stores Jaccard similarity coordinates between active users
 let globalItemLikers = {}; // Inverted index mapping pets to users who liked them
@@ -81,6 +82,7 @@ async function loadStateFromLocal() {
             globalOptimalK = state.optimalK || 3;
             globalClusterStats = state.clusterStats || {};
             globalAgnesMap = state.agnesMap || {};
+            globalElbowWcss = state.elbowWcss || [];
 
             // Deserialise the Apriori Map array back into active Map structures
             if (state.aprioriRules) {
@@ -113,7 +115,8 @@ async function syncToLocal() {
             clusterStats: globalClusterStats,
             agnesMap: globalAgnesMap,
             aprioriRules: aprioriSerialized,
-            rfModelJSON: globalRfModel ? globalRfModel.toJSON() : null
+            rfModelJSON: globalRfModel ? globalRfModel.toJSON() : null,
+            elbowWcss: globalElbowWcss
         };
 
         // Write atomically: save to a temporary file first, then perform an atomic rename
@@ -282,7 +285,7 @@ function invert3x3Covariance(matrix, epsilon = 1e-4) {
     ];
 }
 
-// Compute the Within-Cluster Sum of Squares (WCSS) to evaluate KMeans clustering density
+// Compute the Within-Cluster Sum of Squares (WCSS) to evaluate KMeansclustering density
 function computeWCSS(data, clusters, centroids) {
     let wcss = 0;
     for (let i = 0; i < data.length; i++) {
@@ -307,7 +310,10 @@ ALGORITHM 3: KNEEDLE ELBOW DETECTION (Finding Optimal Pet Cohort Counts)
 function findOptimalK(data, maxK = 10) {
     const limit = Math.min(maxK, data.length - 1);
     // Return basic fallback cluster range if the dataset is too small
-    if (limit <= 2) return Math.max(2, limit);
+    if (limit <= 2) {
+        globalElbowWcss = [0, 0, 0, 0, 0, 0, 0, 0];
+        return Math.max(2, limit);
+    }
 
     const wcssValues = [];
     // Compute WCSS for K values ranging from 1 up to limit
@@ -315,6 +321,7 @@ function findOptimalK(data, maxK = 10) {
         const result = kmeans(data, k, { initialization: 'kmeans++' });
         wcssValues.push(computeWCSS(data, result.clusters, result.centroids));
     }
+    globalElbowWcss = [...wcssValues];
 
     const minWcss = Math.min(...wcssValues);
     const maxWcss = Math.max(...wcssValues);
@@ -382,6 +389,23 @@ async function trainBackgroundModels() {
         globalOptimalK = findOptimalK(scaledPhysFeatures, ML_CONFIG.maxK);
         const kmeansResult = kmeans(scaledPhysFeatures, globalOptimalK, { initialization: 'kmeans++' });
         globalCentroids = kmeansResult.centroids;
+
+        // Assign each approved pet to their clusterGroup
+        approvedPets.forEach((p, i) => {
+            p.clusterGroup = kmeansResult.clusters[i];
+        });
+
+        // Write the updated pets list back to individual_pets.csv
+        const petHeaders = [
+            { id: 'username', title: 'username' }, { id: 'petName', title: 'petName' },
+            { id: 'type', title: 'type' }, { id: 'gender', title: 'gender' },
+            { id: 'birthYear', title: 'birthYear' }, { id: 'vaccination', title: 'vaccination' },
+            { id: 'breed', title: 'breed' }, { id: 'length', title: 'length' },
+            { id: 'weight', title: 'weight' }, { id: 'color', title: 'color' },
+            { id: 'personality', title: 'personality' }, { id: 'photoPath', title: 'photoPath' },
+            { id: 'isFlagged', title: 'isFlagged' }, { id: 'clusterGroup', title: 'clusterGroup' }
+        ];
+        await writeCsv(PETS_CSV, petHeaders, pets);
 
         // Reset the cluster stats dictionary and compute covariance properties for each active cluster
         globalClusterStats = {};
@@ -605,6 +629,7 @@ async function trainBackgroundModels() {
             }
         }
     }
+    await syncToLocal();
 }
 
 /*
@@ -905,6 +930,8 @@ function getAgnesTree() { return { tree: globalAgnesTreeCache, optimalK: globalO
 function getAprioriRules() {
     return Object.fromEntries(Object.entries(globalAprioriRules).map(([k, v]) => [k, Array.from(v.entries())]));
 }
+// Exposes current K-Means elbow WCSS curve data
+function getElbowData() { return { wcss: globalElbowWcss, optimalK: globalOptimalK }; }
 
 // Module exports exposed to controllers and routing scripts
 module.exports = {
@@ -917,6 +944,7 @@ module.exports = {
     getPlaydatesFeed,
     getAgnesTree,
     getAprioriRules,
+    getElbowData,
     readCsv,
     writeCsv
 };

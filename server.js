@@ -32,7 +32,7 @@ const userHeaders = [
     { id: 'username', title: 'username' }, { id: 'email', title: 'email' },
     { id: 'phone', title: 'phone' }, { id: 'location', title: 'location' },
     { id: 'password', title: 'password' }, { id: 'fullName', title: 'fullName' },
-    { id: 'photoPath', title: 'photoPath' }
+    { id: 'photoPath', title: 'photoPath' }, { id: 'isBlocked', title: 'isBlocked' }
 ];
 
 const petHeaders = [
@@ -105,7 +105,7 @@ const authRoutes = require('./routes/auth')(mlPipeline, USERS_CSV, PETS_CSV, use
 const userRoutes = require('./routes/users')(mlPipeline, USERS_CSV, userHeaders, breedMap);
 const petRoutes = require('./routes/pets')(mlPipeline, PETS_CSV, petHeaders, DB_DIR);
 const breedRoutes = require('./routes/breeds')(mlPipeline, DB_DIR);
-const adminRoutes = require('./routes/admin')(mlPipeline, PETS_CSV, petHeaders, INTERACTIONS_CSV, breedMap);
+const adminRoutes = require('./routes/admin')(mlPipeline, PETS_CSV, petHeaders, INTERACTIONS_CSV, breedMap, USERS_CSV, userHeaders);
 const interactionRoutes = require('./routes/interactions')(mlPipeline, INTERACTIONS_CSV, interactionHeaders, MESSAGES_CSV, messageHeaders);
 const messageRoutes = require('./routes/messages')(mlPipeline, MESSAGES_CSV, messageHeaders, USERS_CSV, PETS_CSV);
 const chatRoutes = require('./routes/chats')(mlPipeline, CHAT_CSV, chatHeaders);

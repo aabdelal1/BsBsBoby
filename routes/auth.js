@@ -37,7 +37,7 @@ module.exports = (mlPipeline, USERS_CSV, PETS_CSV, userHeaders, breedMap) => {
                 if (found) pet = { ...found, breed: breedMap[found.breed] || found.breed };
             }
 
-            res.json({ success: true, message: 'Login successful', isAdmin, user: { username: user.username, email: user.email, phone: user.phone, location: user.location, fullName: user.fullName, photoPath: user.photoPath }, pet });
+            res.json({ success: true, message: 'Login successful', isAdmin, user: { username: user.username, email: user.email, phone: user.phone, location: user.location, fullName: user.fullName, photoPath: user.photoPath, isBlocked: user.isBlocked === 'true' }, pet });
         } catch (err) { res.status(500).json({ error: 'Server error' }); }
     });
 
